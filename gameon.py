@@ -1,5 +1,5 @@
-from PySide2.QtWidgets import QSpacerItem, QWidget, QMessageBox, QDialog, QDialogButtonBox, QLabel, QLineEdit, \
-    QPushButton, QVBoxLayout, QHBoxLayout, QApplication, QRadioButton, QSpinBox, QCompleter, QSizePolicy
+from PySide2.QtWidgets import QSpacerItem, QWidget, QMessageBox, QDialog, QLabel, QLineEdit, \
+    QPushButton, QVBoxLayout, QHBoxLayout, QApplication, QSizePolicy
 from PySide2.QtCore import *
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
 
