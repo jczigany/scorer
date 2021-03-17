@@ -24,7 +24,7 @@ class AppWindows(QMainWindow):
     def __init__(self):
         super(AppWindows, self).__init__()
         self.setWindowTitle("Darts Scorer powered by Jcigi")
-        self.resize(1000,800)
+        self.resize(1100,900)
         widget = QWidget()
         self.main_layout = QVBoxLayout()
         widget.setLayout(self.main_layout)
