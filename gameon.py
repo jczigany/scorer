@@ -1,6 +1,7 @@
 from PySide2.QtWidgets import QSpacerItem, QWidget, QMessageBox, QDialog, QLabel, QLineEdit, \
     QPushButton, QVBoxLayout, QHBoxLayout, QApplication, QSizePolicy, QTextEdit
 from PySide2.QtCore import *
+from PySide2.QtGui import QRegExpValidator, QIntValidator
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
 
 
@@ -28,6 +29,7 @@ class GameWindowDialog(QDialog):
 
         self.params = []
         self.set_layouts()
+        self.alapertekek()
         # A neveket tartalmazó QLabel-ek létrehozása, hozzáadása a neveket tartalmazó layout-hoz
         self.nev1 = QLabel()
         self.nev1.setAlignment(Qt.AlignCenter)
@@ -38,19 +40,29 @@ class GameWindowDialog(QDialog):
         self.nevek_layout.addWidget(self.nev1)
         self.nevek_layout.addWidget(self.nev2)
         # A konkrét pontszámot tartalmazó widget hozzáadása a pont1 widget layout-jához
-        self.score1_layout.addWidget(QLabel("PONT1"))
+        self.pont1 = QLabel("501")
+        self.pont1.setAlignment(Qt.AlignCenter)
+        self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 75px")
+        self.score1_layout.addWidget(self.pont1)
         # Set1, Leg1 megjelenítéséhez Widget, Layout
         self.leg1_layout.addWidget(QLabel("Leg:"))
-        self.leg1_layout.addWidget(QLabel("11"))
+        self.leg1 = QLabel("0")
+        self.leg1_layout.addWidget(self.leg1)
         self.set1_layout.addWidget(QLabel("Set:"))
-        self.set1_layout.addWidget(QLabel("3"))
+        self.set1 = QLabel("0")
+        self.set1_layout.addWidget(self.set1)
         # Set2, Leg2 megjelenítéséhez Widget, Layout
         self.leg2_layout.addWidget(QLabel("Leg:"))
-        self.leg2_layout.addWidget(QLabel("11"))
+        self.leg2 = QLabel("0")
+        self.leg2_layout.addWidget(self.leg2)
         self.set2_layout.addWidget(QLabel("Set:"))
-        self.set2_layout.addWidget(QLabel("3"))
+        self.set2 = QLabel("0")
+        self.set2_layout.addWidget(self.set2)
         # A konkrét pontszámot tartalmazó widget hozzáadása a pont2 widget layout-jához
-        self.score2_layout.addWidget(QLabel("PONT2"))
+        self.pont2 = QLabel("501")
+        self.pont2.setAlignment(Qt.AlignCenter)
+        self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 75px")
+        self.score2_layout.addWidget(self.pont2)
         # A CHEKOUT1-ET tartalmazó Widget hozzáadása a checkout1 widget layout-jához
         self.check1 = QLabel("Check-Out 1")
         self.check1.setAlignment(Qt.AlignCenter)
@@ -62,30 +74,210 @@ class GameWindowDialog(QDialog):
         self.check2.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 30px")
         self.check2_layout.addWidget(self.check2)
         # Az aktuális pontszámot tartalmazó Widget hozzáadása a current widget layout-jához
-        self.current = QLabel("180")
+        validator = QIntValidator(0,180)
+        self.current = QLineEdit()
+        self.current.setValidator(validator)
+        self.current.setFocus()
         self.current.setAlignment(Qt.AlignCenter)
         self.current.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 50px")
         self.current_layout.addWidget(self.current)
+        self.current.returnPressed.connect(self.pont_beirva)
         # A statisztika1-et tartalmazo widget hozzáadása a stat1 layout-hoz
-        self.stat1 = QLabel("Stat1")
-        self.stat1.setAlignment(Qt.AlignCenter)
-        self.stat1.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 50px")
+        self.stat1 = QTextEdit()
+        self.stat1.setAlignment(Qt.AlignLeft)
+        self.stat1.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 20px")
         self.stat1_layout.addWidget(self.stat1)
         # A statisztika2-et tartalmazo widget hozzáadása a stat2 layout-hoz
-        self.stat2 = QLabel("Stat2")
-        self.stat2.setAlignment(Qt.AlignCenter)
-        self.stat2.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 50px")
+        self.stat2 = QTextEdit()
+        self.stat2.setAlignment(Qt.AlignLeft)
+        self.stat2.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 20px")
         self.stat2_layout.addWidget(self.stat2)
         # A körök1-et tartalmazo widget hozzáadása a korok1 layout-hoz
-        self.kor1 = QLabel("KÖR1")
+        self.kor1 = QTextEdit()
         self.kor1.setAlignment(Qt.AlignCenter)
-        self.kor1.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 50px")
+        self.kor1.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 20px")
         self.round1_layout.addWidget(self.kor1)
         # A körök2-et tartalmazo widget hozzáadása a korok2 layout-hoz
-        self.kor2 = QLabel("KÖR2")
+        self.kor2 = QTextEdit()
         self.kor2.setAlignment(Qt.AlignCenter)
-        self.kor2.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 50px")
+        self.kor2.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 20px")
         self.round2_layout.addWidget(self.kor2)
+
+    def dobas(self, player, score):
+        """
+        Az aktuális,érvényes dobás beszúrása a dobas táblába.
+        [player_id(player), round_number, points(score), leg_id, set_id, match_id, timestamp]
+        :param player:
+        :param score:
+        :return:
+        """
+        # print("Dobás rögzítése")
+        now = QDateTime.currentDateTime()
+        dobas_model = QSqlTableModel()
+        dobas_model.setTable("dobas")
+        record = dobas_model.record()
+        record.setValue(0, player)
+        record.setValue(1, self.round_number)
+        record.setValue(2, score)
+        record.setValue(3, self.leg_id)
+        record.setValue(4, self.set_id)
+        record.setValue(5, self.match_id)
+        record.setValue(6, now)
+        # print(record)
+        if dobas_model.insertRecord(-1, record):
+            dobas_model.submitAll()
+            # dobas_model = None
+        else:
+            db.rollback()
+
+    def write_leg(self, winner):
+        """
+        Az aktuális(megnyert) leg beszúrása a matches táblába.
+        [match_id, leg_id, set_id, winner_id, timestamp]
+        :param winner:
+        :return:
+        """
+        now = QDateTime.currentDateTime()
+        leg_model = QSqlTableModel()
+        leg_model.setTable("matches")
+        record = leg_model.record()
+        record.setValue(0, self.match_id)
+        record.setValue(1, self.leg_id)
+        record.setValue(2, self.set_id)
+        record.setValue(3, winner)
+        record.setValue(6, now)
+        print(record)
+        if leg_model.insertRecord(-1, record):
+            leg_model.submitAll()
+            # dobas_model = None
+        else:
+            db.rollback()
+
+    def kovetkezo_jatekos(self, write_score):
+        # print("következő játékos")
+        if self.akt_score == 'score_1':
+            self.dobas(self.player1_id, write_score)
+            self.kor1.append(str(3 * self.round_number) + ":\t" + str(write_score) + "\t" + self.pont1.text())
+            self.akt_score = 'score_2'
+            self.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 60px")
+            self.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 60px")
+        else:
+            self.dobas(self.player2_id, write_score)
+            self.kor2.append(str(3 * self.round_number) + ":\t" + str(write_score) + "\t" + self.pont2.text())
+            self.akt_score = 'score_1'
+            self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 60px")
+            self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 60px")
+
+    def result_staus(self):
+        """
+                self.setperleg: Hány Leg-et kell nyerni 1 Set-hez
+                self.sets: Hány Set-et kell nyerni a meccs-hez
+                self.leg_id: Hányadik Leg az adott Set-ben
+                self.set_id: Hányadik Set az adott meccs-ben
+        """
+        # db1: az adott mecs, adott set-
+        pass
+
+    def pont_beirva(self):
+        # print(self.pont1.text())
+        # print(self.current.text())
+        # self.current.setText("")
+        if self.akt_score == 'score_1':
+            if (int(self.current.text()) == 0) or (int(self.current.text()) + 1 == int(self.pont1.text())) or (int(self.current.text()) > int(self.pont1.text())):
+                print("Nulla vagy besokalt")
+                write_score = 0
+                self.current.setText("")
+                self.kovetkezo_jatekos(write_score)
+                if self.leg_kezd == 'player2':
+                    self.round_number += 1
+            elif (int(self.current.text()) + 1 < int(self.pont1.text())):
+                print("érvényes dobás")
+                self.pont1.setText(str(int(self.pont1.text()) - int(self.current.text())))
+                write_score = int(self.current.text())
+                self.current.setText("")
+                self.kovetkezo_jatekos(write_score)
+                if self.leg_kezd == 'player2':
+                    self.round_number += 1
+            else:
+                print("megdobta")
+                self.pont1.setText("0")
+                write_score = int(self.current.text())
+                self.dobas(self.player1_id, write_score)
+                self.write_leg(self.player1_id)
+                self.won_legs_1 += 1
+                self.leg1.setText(str(self.won_legs_1))
+                self.kor1.clear()
+                self.kor2.clear()
+                self.pont1.setText(self.params[5])
+                self.pont2.setText(self.params[5])
+                self.round_number = 1
+                self.result_status()
+                if self.leg_kezd == "player1":
+                    self.leg_kezd = "player2"
+                    self.akt_score = "score_2"
+                    self.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 75px")
+                    self.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 75px")
+                else:
+                    self.leg_kezd = "player1"
+                    self.akt_score = "score_1"
+                    self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 75px")
+                    self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 75px")
+                self.current.setText("")
+                # if self.leg_kezd == 'player2':
+                #     self.round_number += 1
+        else:
+            if (int(self.current.text()) == 0) or (int(self.current.text()) + 1 == int(self.pont2.text())) or (
+                    int(self.current.text()) > int(self.pont2.text())):
+                write_score = 0
+                self.current.setText("")
+                self.kovetkezo_jatekos(write_score)
+                if self.leg_kezd == 'player1':
+                    self.round_number += 1
+            elif (int(self.current.text()) + 1 < int(self.pont2.text())):
+                self.pont2.setText(str(int(self.pont2.text()) - int(self.current.text())))
+                write_score = int(self.current.text())
+                self.current.setText("")
+                self.kovetkezo_jatekos(write_score)
+                if self.leg_kezd == 'player1':
+                    self.round_number += 1
+            else:
+                print("megdobta")
+                self.pont2.setText("0")
+                write_score = int(self.current.text())
+                self.dobas(self.player2_id, write_score)
+                self.write_leg(self.player2_id)
+                self.won_legs_2 += 1
+                self.leg2.setText(str(self.won_legs_2))
+                self.kor1.clear()
+                self.kor2.clear()
+                self.pont1.setText(self.params[5])
+                self.pont2.setText(self.params[5])
+                self.round_number = 1
+                self.result_status()
+                if self.leg_kezd == "player1":
+                    self.leg_kezd = "player2"
+                    self.akt_score = "score_2"
+                    self.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 75px")
+                    self.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 75px")
+                else:
+                    self.leg_kezd = "player1"
+                    self.akt_score = "score_1"
+                    self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 75px")
+                    self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 75px")
+                self.current.setText("")
+
+    def alapertekek(self):
+        self.won_legs_1 = 0
+        self.won_sets_1 = 0
+        self.won_legs_2 = 0
+        self.won_sets_2 = 0
+        # Számolási adatok
+        self.akt_score = 'score_1'
+        self.round_number = 1
+        self.leg_id = 1
+        self.set_id = 1
+        self.leg_kezd = "player1"
+        self.set_kezd = "player1"
 
     def set_layouts(self):
         # Fő LAYOUT létrehozása, beállítása
@@ -204,8 +396,23 @@ class GameWindowDialog(QDialog):
         self.layout.addItem(self.space)
 
     def refresh(self):
+        # params.append(player1)
+        # params.append(player2)
+        # params.append(m_id)
+        # params.append(p1_id)
+        # params.append(p2_id)
+        # params.append(var)
+        # params.append(set)
+        # params.append(leg)
+        self.match_id = self.params[2]
+        self.player1_id = self.params[3]
+        self.player2_id = self.params[4]
         self.nev1.setText(self.params[0])
         self.nev2.setText(self.params[1])
+        self.pont1.setText(self.params[5])
+        self.pont2.setText(self.params[5])
+        self.setperleg = self.params[6]
+        self.sets= self.params[7]
 
 
 if __name__ == '__main__':
