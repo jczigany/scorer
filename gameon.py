@@ -168,15 +168,62 @@ class GameWindowDialog(QDialog):
             self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 60px")
             self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 60px")
 
-    def result_staus(self):
+    def end_game(self):
+        self.current.setDisabled(True)
+
+    def result_status(self):
         """
                 self.setperleg: Hány Leg-et kell nyerni 1 Set-hez
                 self.sets: Hány Set-et kell nyerni a meccs-hez
                 self.leg_id: Hányadik Leg az adott Set-ben
                 self.set_id: Hányadik Set az adott meccs-ben
         """
-        # db1: az adott mecs, adott set-
-        pass
+        # db1: az adott mecs, adott set-jében hány leg-et nyert az 1. játékos
+        # db2: az adott mecs, adott set-jében hány leg-et nyert az 2. játékos
+        db1_model = QSqlQueryModel()
+        query = QSqlQuery(f"SELECT count(*) db FROM matches where match_id = {self.match_id} and set_id = {self.set_id} and winner_id = {self.player1_id}", db=db)
+        db1_model.setQuery(query)
+        if db1_model.record(0).value(0):
+            db1 = int(db1_model.record(0).value(0))
+        else:
+            db1 = 0
+        db2_model = QSqlQueryModel()
+        query2 = QSqlQuery(
+            f"SELECT count(*) db FROM matches where match_id = {self.match_id} and set_id = {self.set_id} and winner_id = {self.player2_id}",
+            db=db)
+        db2_model.setQuery(query2)
+        if db2_model.record(0).value(0):
+            db2 = int(db2_model.record(0).value(0))
+        else:
+            db2 = 0
+        if (self.setperleg > db1) and (self.setperleg > db2): # mindketten kevesebbet nyertek, mint kellene
+            # Az adott set-ben megnöveljük a set_id-t
+            self.leg_id += 1
+        else:
+            # Az egyik megnyerte a Leg-et (Növeljük a Set számát - ha nincs vége - 1-re állítjuk a Leg számát
+            self.won_legs_1 = 0
+            self.won_legs_2 = 0
+            self.leg1.setText(str(self.won_legs_1))
+            self.leg2.setText(str(self.won_legs_2))
+            # Ha valamelyik megnyerte a set-et, akkor növeljük a nyert set-ek számát
+            if self.setperleg == db1:
+                self.won_sets_1 += 1
+                self.set1.setText(str(self.won_sets_1))
+            else:
+                self.won_sets_2 += 1
+                self.set2.setText(str(self.won_sets_2))
+            # Ha a nyert set-ek közül mindkettő kisebb, mint a beállított ( még kell játszani)
+            if (self.sets > self.won_sets_1) and ( self.sets > self.won_sets_2):
+                self.set_id += 1
+                self.leg_id = 1
+            else:
+                # Vége a meccsnek, valaki nyert
+                print("GAME OVER!!!!!!!!!!")
+                if self.won_sets_1 > self.won_sets_2:
+                    print("A játékot nyerte: ", self.nev1.text())
+                else:
+                    print("A játékot nyerte: ", self.nev2.text())
+                self.end_game()
 
     def pont_beirva(self):
         # print(self.pont1.text())
