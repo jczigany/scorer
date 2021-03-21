@@ -265,6 +265,7 @@ class GameWindowDialog(QDialog):
         :return:
         """
         # print("Dobás rögzítése")
+        # todo a dobásoknál a későbbi statisztika miatt tudni kell, hány nyílból dobta meg a kiszállót!!
         now = QDateTime.currentDateTime()
         dobas_model = QSqlTableModel()
         dobas_model.setTable("dobas")
@@ -384,6 +385,13 @@ class GameWindowDialog(QDialog):
                     self.close()
                 self.end_game()
 
+    def hany_kiszallo(self):
+        kiszallo, ok = QInputDialog.getInt(self, "Kiszálló", "Hány nyílból dobtad meg?", 3, 1, 3)
+        if ok and kiszallo:
+            return kiszallo
+        else:
+            return 3
+
     def pont_beirva(self):
         if self.akt_score == 'score_1':
             if (int(self.current.text()) == 0) or (int(self.current.text()) + 1 == int(self.pont1.text())) or (int(self.current.text()) > int(self.pont1.text())):
@@ -407,7 +415,8 @@ class GameWindowDialog(QDialog):
                 print("megdobta")
                 self.pont1.setText("0")
                 write_score = int(self.current.text())
-                self.update_stat(self.player1_id, write_score, 3) # todo Itt előbb majd be kell kérni, hogy hány nyílból dobta be
+                nyil = self.hany_kiszallo()
+                self.update_stat(self.player1_id, write_score, nyil)
                 self.dobas(self.player1_id, write_score)
                 self.write_leg(self.player1_id)
                 self.won_legs_1 += 1
@@ -452,7 +461,8 @@ class GameWindowDialog(QDialog):
                 print("megdobta")
                 self.pont2.setText("0")
                 write_score = int(self.current.text())
-                self.update_stat(self.player1_id, write_score, 3)  # todo Itt előbb majd be kell kérni, hogy hány nyílból dobta be
+                nyil = self.hany_kiszallo()
+                self.update_stat(self.player1_id, write_score, nyil)
                 self.dobas(self.player2_id, write_score)
                 self.write_leg(self.player2_id)
                 self.won_legs_2 += 1
@@ -637,3 +647,5 @@ if __name__ == '__main__':
     win = GameWindowDialog()
     win.show()
     app.exec_()
+
+    # http://www.nydc.hu/documents/082636-d4fha.pdf
