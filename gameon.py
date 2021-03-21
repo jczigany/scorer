@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QSpacerItem, QWidget, QMessageBox, QDialog, QLabel, QLineEdit, \
-    QPushButton, QVBoxLayout, QHBoxLayout, QApplication, QSizePolicy, QTextEdit
+    QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QApplication, QSizePolicy, QTextEdit, QInputDialog
 from PySide2.QtCore import *
 from PySide2.QtGui import QRegExpValidator, QIntValidator
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
@@ -18,6 +18,43 @@ if not db.open():
         "Database Error: %s" % db.lastError().text(),
     )
     sys.exit(1)
+
+
+class CustomQLabel(QLabel):
+    def __init__(self, param = ""):
+        super(CustomQLabel, self).__init__()
+        self.setText(param)
+        self.setTextFormat(Qt.RichText)
+        self.setStyleSheet("font-size: 18px; font-family: Cuorier New")
+        self.setAlignment(Qt.AlignCenter)
+
+
+class CustomIntLabel(CustomQLabel):
+    def __init__(self):
+        super(CustomIntLabel, self).__init__()
+        self.ertek = 0
+        self.setText(str(self.ertek))
+
+    def get_value(self):
+        return int(self.text())
+
+    def set_value(self, ertek):
+        self.ertek = ertek
+        self.setText(str(self.ertek))
+
+
+class CustomFloatLabel(CustomQLabel):
+    def __init__(self):
+        super(CustomFloatLabel, self).__init__()
+        self.ertek = 0.00
+        self.setText(str(self.ertek))
+
+    def get_value(self):
+        return round(float(self.text()), 2)
+
+    def set_value(self, ertek):
+        self.ertek = round(ertek, 2)
+        self.setText(str(self.ertek))
 
 
 class GameWindowDialog(QDialog):
@@ -83,15 +120,18 @@ class GameWindowDialog(QDialog):
         self.current_layout.addWidget(self.current)
         self.current.returnPressed.connect(self.pont_beirva)
         # A statisztika1-et tartalmazo widget hozzáadása a stat1 layout-hoz
-        self.stat1 = QTextEdit()
-        self.stat1.setAlignment(Qt.AlignLeft)
-        self.stat1.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 20px")
-        self.stat1_layout.addWidget(self.stat1)
+        # statisztikai változók
+        self.stat1()
+        # self.stat1 = QTextEdit()
+        # self.stat1.setAlignment(Qt.AlignLeft)
+        # self.stat1.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 20px")
+        # self.stat1_layout.addWidget(self.stat1)
         # A statisztika2-et tartalmazo widget hozzáadása a stat2 layout-hoz
-        self.stat2 = QTextEdit()
-        self.stat2.setAlignment(Qt.AlignLeft)
-        self.stat2.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 20px")
-        self.stat2_layout.addWidget(self.stat2)
+        self.stat2()
+        # self.stat2 = QTextEdit()
+        # self.stat2.setAlignment(Qt.AlignLeft)
+        # self.stat2.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 20px")
+        # self.stat2_layout.addWidget(self.stat2)
         # A körök1-et tartalmazo widget hozzáadása a korok1 layout-hoz
         self.kor1 = QTextEdit()
         self.kor1.setAlignment(Qt.AlignCenter)
@@ -102,6 +142,119 @@ class GameWindowDialog(QDialog):
         self.kor2.setAlignment(Qt.AlignCenter)
         self.kor2.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 20px")
         self.round2_layout.addWidget(self.kor2)
+
+    def stat1(self):
+        stat1_grid = QGridLayout()
+        self.stat1_layout.addLayout(stat1_grid)
+        space = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.stat1_layout.addItem(space)
+
+        stat1_grid.addWidget(CustomQLabel("60+"), 0, 0)
+        self.var60_1 = CustomIntLabel()
+        stat1_grid.addWidget(self.var60_1, 0, 1)
+        stat1_grid.addWidget(CustomQLabel("80+"), 1, 0)
+        self.var80_1 = CustomIntLabel()
+        stat1_grid.addWidget(self.var80_1, 1, 1)
+        stat1_grid.addWidget(CustomQLabel("100+"), 2, 0)
+        self.var100_1 = CustomIntLabel()
+        stat1_grid.addWidget(self.var100_1, 2, 1)
+        stat1_grid.addWidget(CustomQLabel("120+"), 3, 0)
+        self.var120_1 = CustomIntLabel()
+        stat1_grid.addWidget(self.var120_1, 3, 1)
+        stat1_grid.addWidget(CustomQLabel("140+"), 4, 0)
+        self.var140_1 = CustomIntLabel()
+        stat1_grid.addWidget(self.var140_1, 4, 1)
+        stat1_grid.addWidget(CustomQLabel("180"), 5, 0)
+        self.var180_1 = CustomIntLabel()
+        stat1_grid.addWidget(self.var180_1, 5, 1)
+        stat1_grid.addWidget(QLabel(), 6, 0)
+        stat1_grid.addWidget(QLabel(), 7, 0)
+        stat1_grid.addWidget(CustomQLabel("Dobás átlag"), 8, 0)
+        self.aver_1 = CustomFloatLabel()
+        stat1_grid.addWidget(self.aver_1, 8, 1)
+        stat1_grid.addWidget(CustomQLabel("Első 9 nyíl"), 9, 0)
+        self.first9_1 = CustomFloatLabel()
+        stat1_grid.addWidget(self.first9_1, 9, 1)
+
+    def stat2(self):
+        stat2_grid = QGridLayout()
+        self.stat2_layout.addLayout(stat2_grid)
+        space = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.stat2_layout.addItem(space)
+
+        stat2_grid.addWidget(CustomQLabel("60+"), 0, 0)
+        self.var60_2 = CustomIntLabel()
+        stat2_grid.addWidget(self.var60_2, 0, 1)
+        stat2_grid.addWidget(CustomQLabel("80+"), 1, 0)
+        self.var80_2 = CustomIntLabel()
+        stat2_grid.addWidget(self.var80_2, 1, 1)
+        stat2_grid.addWidget(CustomQLabel("100+"), 2, 0)
+        self.var100_2 = CustomIntLabel()
+        stat2_grid.addWidget(self.var100_2, 2, 1)
+        stat2_grid.addWidget(CustomQLabel("120+"), 3, 0)
+        self.var120_2 = CustomIntLabel()
+        stat2_grid.addWidget(self.var120_2, 3, 1)
+        stat2_grid.addWidget(CustomQLabel("140+"), 4, 0)
+        self.var140_2 = CustomIntLabel()
+        stat2_grid.addWidget(self.var140_2, 4, 1)
+        stat2_grid.addWidget(CustomQLabel("180"), 5, 0)
+        self.var180_2 = CustomIntLabel()
+        stat2_grid.addWidget(self.var180_2, 5, 1)
+        stat2_grid.addWidget(QLabel(), 6, 0)
+        stat2_grid.addWidget(QLabel(), 7, 0)
+        stat2_grid.addWidget(CustomQLabel("Dobás átlag"), 8, 0)
+        self.aver_2 = CustomFloatLabel()
+        stat2_grid.addWidget(self.aver_2, 8, 1)
+        stat2_grid.addWidget(CustomQLabel("Első 9 nyíl"), 9, 0)
+        self.first9_2 = CustomFloatLabel()
+        stat2_grid.addWidget(self.first9_2, 9, 1)
+
+    def update_stat(self, player, pont, nyil):
+        if player == self.player1_id:
+            if pont == 180:
+                self.var180_1.set_value(self.var180_1.get_value() + 1)
+            elif pont >= 140:
+                self.var140_1.set_value(self.var140_1.get_value() + 1)
+            elif pont >= 120:
+                self.var120_1.set_value(self.var120_1.get_value() + 1)
+            elif pont >= 100:
+                self.var100_1.set_value(self.var100_1.get_value() + 1)
+            elif pont >= 80:
+                self.var80_1.set_value(self.var80_1.get_value() + 1)
+            elif pont >= 60:
+                self.var60_1.set_value(self.var60_1.get_value() + 1)
+            # Átlag számítás
+            self.sum_1 += pont
+            self.darab_1 += nyil
+            self.aver_1.set_value((self.sum_1 / self.darab_1) * 3)
+            # 9 nyilas átlag (self.sum9_1, self.darab9_1)
+            if self.round_number <= 3:
+                self.sum9_1 += pont
+                self.darab9_1 += nyil
+                self.first9_1.set_value((self.sum9_1 / self.darab9_1) * 3)
+        else:
+            print("2. játékos stat")
+            if pont == 180:
+                self.var180_2.set_value(self.var180_2.get_value() + 1)
+            elif pont >= 140:
+                self.var140_2.set_value(self.var140_2.get_value() + 1)
+            elif pont >= 120:
+                self.var120_2.set_value(self.var120_2.get_value() + 1)
+            elif pont >= 100:
+                self.var100_2.set_value(self.var100_2.get_value() + 1)
+            elif pont >= 80:
+                self.var80_2.set_value(self.var80_2.get_value() + 1)
+            elif pont >= 60:
+                self.var60_2.set_value(self.var60_2.get_value() + 1)
+            # Átlag számítás
+            self.sum_2 += pont
+            self.darab_2 += nyil
+            self.aver_2.set_value((self.sum_2 / self.darab_2) * 3)
+            # 9 nyilas átlag (self.sum9_2, self.darab9_2)
+            if self.round_number <= 3:
+                self.sum9_2 += pont
+                self.darab9_2 += nyil
+                self.first9_2.set_value((self.sum9_2 / self.darab9_2) * 3)
 
     def dobas(self, player, score):
         """
@@ -217,22 +370,26 @@ class GameWindowDialog(QDialog):
                 self.set_id += 1
                 self.leg_id = 1
             else:
+                msg = QMessageBox()
+                msg.setWindowTitle("A játék véget ért!")
                 # Vége a meccsnek, valaki nyert
                 print("GAME OVER!!!!!!!!!!")
                 if self.won_sets_1 > self.won_sets_2:
-                    print("A játékot nyerte: ", self.nev1.text())
+                    msg.setText("A játékot nyerte: " + self.nev1.text())
+                    # print("A játékot nyerte: ", self.nev1.text())
                 else:
-                    print("A játékot nyerte: ", self.nev2.text())
+                    msg.setText("A játékot nyerte: " + self.nev2.text())
+                    # print("A játékot nyerte: ", self.nev2.text())
+                if msg.exec_():
+                    self.close()
                 self.end_game()
 
     def pont_beirva(self):
-        # print(self.pont1.text())
-        # print(self.current.text())
-        # self.current.setText("")
         if self.akt_score == 'score_1':
             if (int(self.current.text()) == 0) or (int(self.current.text()) + 1 == int(self.pont1.text())) or (int(self.current.text()) > int(self.pont1.text())):
                 print("Nulla vagy besokalt")
                 write_score = 0
+                self.update_stat(self.player1_id, write_score, 3)
                 self.current.setText("")
                 self.kovetkezo_jatekos(write_score)
                 if self.leg_kezd == 'player2':
@@ -241,6 +398,7 @@ class GameWindowDialog(QDialog):
                 print("érvényes dobás")
                 self.pont1.setText(str(int(self.pont1.text()) - int(self.current.text())))
                 write_score = int(self.current.text())
+                self.update_stat(self.player1_id, write_score, 3)
                 self.current.setText("")
                 self.kovetkezo_jatekos(write_score)
                 if self.leg_kezd == 'player2':
@@ -249,6 +407,7 @@ class GameWindowDialog(QDialog):
                 print("megdobta")
                 self.pont1.setText("0")
                 write_score = int(self.current.text())
+                self.update_stat(self.player1_id, write_score, 3) # todo Itt előbb majd be kell kérni, hogy hány nyílból dobta be
                 self.dobas(self.player1_id, write_score)
                 self.write_leg(self.player1_id)
                 self.won_legs_1 += 1
@@ -276,6 +435,7 @@ class GameWindowDialog(QDialog):
             if (int(self.current.text()) == 0) or (int(self.current.text()) + 1 == int(self.pont2.text())) or (
                     int(self.current.text()) > int(self.pont2.text())):
                 write_score = 0
+                self.update_stat(self.player2_id, write_score, 3)
                 self.current.setText("")
                 self.kovetkezo_jatekos(write_score)
                 if self.leg_kezd == 'player1':
@@ -283,6 +443,7 @@ class GameWindowDialog(QDialog):
             elif (int(self.current.text()) + 1 < int(self.pont2.text())):
                 self.pont2.setText(str(int(self.pont2.text()) - int(self.current.text())))
                 write_score = int(self.current.text())
+                self.update_stat(self.player2_id, write_score, 3)
                 self.current.setText("")
                 self.kovetkezo_jatekos(write_score)
                 if self.leg_kezd == 'player1':
@@ -291,6 +452,7 @@ class GameWindowDialog(QDialog):
                 print("megdobta")
                 self.pont2.setText("0")
                 write_score = int(self.current.text())
+                self.update_stat(self.player1_id, write_score, 3)  # todo Itt előbb majd be kell kérni, hogy hány nyílból dobta be
                 self.dobas(self.player2_id, write_score)
                 self.write_leg(self.player2_id)
                 self.won_legs_2 += 1
@@ -325,6 +487,14 @@ class GameWindowDialog(QDialog):
         self.set_id = 1
         self.leg_kezd = "player1"
         self.set_kezd = "player1"
+        self.sum_1 = 0
+        self.sum_2 = 0
+        self.darab_1 = 0
+        self.darab_2 = 0
+        self.sum9_1 = 0
+        self.sum9_2 = 0
+        self.darab9_1 = 0
+        self.darab9_2 = 0
 
     def set_layouts(self):
         # Fő LAYOUT létrehozása, beállítása
