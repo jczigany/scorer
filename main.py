@@ -1,15 +1,17 @@
-from PySide2.QtWidgets import QMainWindow, QWidget, QApplication, QVBoxLayout, QPushButton, QLabel
+from PySide2.QtWidgets import QMainWindow, QWidget, QApplication, QVBoxLayout, QPushButton, QLabel, QMessageBox
 from PySide2.QtCore import *
 from menus import create_menus
 from gamesettings2 import GameSettingsDialog
 from gameon import GameWindowDialog
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
 
-db = QSqlDatabase.addDatabase('QMYSQL')
-db.setHostName('localhost')
-db.setDatabaseName('cida')
-db.setUserName('cida')
-db.setPassword('cida')
+# db = QSqlDatabase.addDatabase('QMYSQL')
+# db.setHostName('localhost')
+# db.setDatabaseName('cida')
+# db.setUserName('cida')
+# db.setPassword('cida')
+db = QSqlDatabase.addDatabase('QSQLITE')
+db.setDatabaseName('scorer.db3')
 
 if not db.open():
     QMessageBox.critical(

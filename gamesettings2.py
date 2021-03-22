@@ -3,11 +3,15 @@ from PySide2.QtCore import *
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
 import random
 
-db = QSqlDatabase.addDatabase('QMYSQL')
-db.setHostName('localhost')
-db.setDatabaseName('cida')
-db.setUserName('cida')
-db.setPassword('cida')
+# db = QSqlDatabase.addDatabase('QMYSQL')
+# db.setHostName('localhost')
+# db.setDatabaseName('cida')
+# db.setUserName('cida')
+# db.setPassword('cida')
+
+db = QSqlDatabase.addDatabase('QSQLITE')
+db.setDatabaseName('scorer.db3')
+
 
 if not db.open():
     QMessageBox.critical(
@@ -173,6 +177,7 @@ class GameSettingsDialog(QDialog):
             p2_id = int(player2_id_model.record(0).value(0))
 
         # Match paremeterek rögzítése
+        now = QDateTime.currentDateTime()
         match_model = QSqlTableModel()
         match_model.setTable("match_settings")
         record = match_model.record()
@@ -182,6 +187,7 @@ class GameSettingsDialog(QDialog):
         record.setValue(3, var)
         record.setValue(4, set)
         record.setValue(5, leg)
+        record.setValue(6, now)
         # print(record)
         if match_model.insertRecord(-1, record):
             match_model.submitAll()

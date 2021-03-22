@@ -5,11 +5,31 @@ from PySide2.QtGui import QRegExpValidator, QIntValidator
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
 
 
-db = QSqlDatabase.addDatabase('QMYSQL')
-db.setHostName('localhost')
-db.setDatabaseName('cida')
-db.setUserName('cida')
-db.setPassword('cida')
+# db = QSqlDatabase.addDatabase('QMYSQL')
+# db.setHostName('localhost')
+# db.setDatabaseName('cida')
+# db.setUserName('cida')
+# db.setPassword('cida')
+# formátum ******    num1: [ [], [], ....],      ********
+kiszallo = {
+    170: ['T20', 'T20', 'DB'],
+    167: ['T20', 'T19', 'DB'],
+    164: [['T20', 'T18', 'DB'], ['T19', 'T19', 'DB']],
+    161: ['T20', 'T17', 'DB'],
+    160: ['T20', 'T20', 'D20'],
+    158: ['T20', 'T20', 'D19'],
+    157: ['T20', 'T19', 'D20'],
+    156: ['T20', 'T20', 'D18'],
+    155: ['T20', 'T19', 'D19'],
+    154: [['T20', 'T18', 'D20'], ['T19', 'T19', 'D20']],
+    153: ['T20', 'T19', "D18"],
+    152: ['T20', 'T20', 'D16'],
+    151: [['T20', 'T17', 'D20'], ['T19', 'T18', 'D20']],
+    150: [['T20', 'T18', 'D18'], ['T19', 'T19', 'D18']],
+}
+
+db = QSqlDatabase.addDatabase('QSQLITE')
+db.setDatabaseName('scorer.db3')
 
 if not db.open():
     QMessageBox.critical(
