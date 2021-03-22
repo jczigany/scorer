@@ -12,20 +12,40 @@ from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableMode
 # db.setPassword('cida')
 # formátum ******    num1: [ [], [], ....],      ********
 kiszallo = {
-    170: ['T20', 'T20', 'DB'],
-    167: ['T20', 'T19', 'DB'],
+    170: [['T20', 'T20', 'DB'],],
+    167: [['T20', 'T19', 'DB'],],
     164: [['T20', 'T18', 'DB'], ['T19', 'T19', 'DB']],
-    161: ['T20', 'T17', 'DB'],
-    160: ['T20', 'T20', 'D20'],
-    158: ['T20', 'T20', 'D19'],
-    157: ['T20', 'T19', 'D20'],
-    156: ['T20', 'T20', 'D18'],
-    155: ['T20', 'T19', 'D19'],
+    161: [['T20', 'T17', 'DB'],],
+    160: [['T20', 'T20', 'D20'],],
+    158: [['T20', 'T20', 'D19'],],
+    157: [['T20', 'T19', 'D20'],],
+    156: [['T20', 'T20', 'D18'],],
+    155: [['T20', 'T19', 'D19'],],
     154: [['T20', 'T18', 'D20'], ['T19', 'T19', 'D20']],
-    153: ['T20', 'T19', "D18"],
-    152: ['T20', 'T20', 'D16'],
+    153: [['T20', 'T19', "D18"],],
+    152: [['T20', 'T20', 'D16'],],
     151: [['T20', 'T17', 'D20'], ['T19', 'T18', 'D20']],
     150: [['T20', 'T18', 'D18'], ['T19', 'T19', 'D18']],
+    149: [['T20', 'T19', 'D16'],],
+    148: [['T20', 'T20', 'D14'], ['T19', 'T17', 'D20']],
+    147: [['T20', 'T17', 'D18'], ['T19', 'T19', 'D18']],
+    146: [['T20', 'T18', 'D16'], ['T19', 'T19', 'D16']],
+    145: [['T20', 'T19', 'D14'],],
+    144: [['T20', 'T20', 'D12'],],
+    143: [['T20', 'T17', 'D16'], ['T19', 'T18', 'D16']],
+    142: [['T20', 'T14', 'D20'], ['T19', 'T19', 'D14']],
+    141: [['T20', 'T19', 'D12'],],
+    140: [['T20', 'T20', 'D20'],],
+    139: [['T20', 'T13', 'D20'],],
+    138: [['T20', 'T18', 'D12'], ['T19', 'T19', 'D12']],
+    137: [['T20', 'T19', 'D10'],],
+    136: [['T20', 'T20', 'D8'],],
+    135: [['DB', 'T15', 'D20'],],
+    134: [['T20', 'T16', 'D13'], ['T20', 'T14', 'D16']],
+    133: [['T20', 'T19', 'D8'],],
+    132: [['DB', 'DB', 'D16'],],
+    131: [['T20', 'T13', 'D16'], ['T19', 'T14', 'D16']],
+    130: [['T20', 'T20', 'D5'],],
 }
 
 db = QSqlDatabase.addDatabase('QSQLITE')
@@ -121,14 +141,18 @@ class GameWindowDialog(QDialog):
         self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 75px")
         self.score2_layout.addWidget(self.pont2)
         # A CHEKOUT1-ET tartalmazó Widget hozzáadása a checkout1 widget layout-jához
-        self.check1 = QLabel("Check-Out 1")
-        self.check1.setAlignment(Qt.AlignCenter)
-        self.check1.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 30px")
+        self.check1 = QTextEdit()
+        self.check1.setDisabled(True)
+        self.check1.setAlignment(Qt.AlignLeft)
+        self.check1.setStyleSheet("font-size: 20px; color: red")
+        self.check1_layout.addWidget(QLabel("Kiszálló javaslat:"))
         self.check1_layout.addWidget(self.check1)
         # A CHEKOUT2-ET tartalmazó Widget hozzáadása a checkout2 widget layout-jához
-        self.check2 = QLabel("Check-Out 2")
-        self.check2.setAlignment(Qt.AlignCenter)
-        self.check2.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 30px")
+        self.check2 = QTextEdit()
+        self.check2.setDisabled(True)
+        self.check2.setAlignment(Qt.AlignRight)
+        self.check2.setStyleSheet("font-size: 20px; color: red")
+        self.check2_layout.addWidget(QLabel("Kiszálló javaslat:"))
         self.check2_layout.addWidget(self.check2)
         # Az aktuális pontszámot tartalmazó Widget hozzáadása a current widget layout-jához
         validator = QIntValidator(0,180)
@@ -162,6 +186,33 @@ class GameWindowDialog(QDialog):
         self.kor2.setAlignment(Qt.AlignCenter)
         self.kor2.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 20px")
         self.round2_layout.addWidget(self.kor2)
+
+    def check_kiszallo(self, jatekos, pont):
+        p = int(pont)
+        kisz = []
+        if p in  kiszallo:
+            kisz = kiszallo[p]
+            hossz = len(kisz)
+            # print("hossz: ", hossz)
+            if jatekos == self.player1_id:
+                self.check1.clear()
+                if hossz == 1:
+                    self.check1.append(str(kisz[0][0]) + " - " + str(kisz[0][1]) + " - " + str(kisz[0][2]))
+                else:
+                    for i in range(hossz):
+                        self.check1.append(str(kisz[i][0]) + " - " + str(kisz[i][1]) + " - " + str(kisz[i][2]))
+            else:
+                self.check2.clear()
+                if hossz == 1:
+                    self.check2.append(str(kisz[0][0]) + " - " + str(kisz[0][1]) + " - " + str(kisz[0][2]))
+                else:
+                    for i in range(hossz):
+                        self.check2.append(str(kisz[i][0]) + " - " + str(kisz[i][1]) + " - " + str(kisz[i][2]))
+        else:
+            if jatekos == self.player1_id:
+                self.check1.clear()
+            else:
+                self.check2.clear()
 
     def stat1(self):
         stat1_grid = QGridLayout()
@@ -285,7 +336,7 @@ class GameWindowDialog(QDialog):
         :return:
         """
         # print("Dobás rögzítése")
-        # todo a dobásoknál a későbbi statisztika miatt tudni kell, hány nyílból dobta meg a kiszállót!!
+        # self.check_kiszallo(score)
         now = QDateTime.currentDateTime()
         dobas_model = QSqlTableModel()
         dobas_model.setTable("dobas")
@@ -416,6 +467,7 @@ class GameWindowDialog(QDialog):
         if self.akt_score == 'score_1':
             if (int(self.current.text()) == 0) or (int(self.current.text()) + 1 == int(self.pont1.text())) or (int(self.current.text()) > int(self.pont1.text())):
                 print("Nulla vagy besokalt")
+                self.check_kiszallo(self.player1_id, self.pont1.text())
                 write_score = 0
                 self.update_stat(self.player1_id, write_score, 3)
                 self.current.setText("")
@@ -425,6 +477,7 @@ class GameWindowDialog(QDialog):
             elif (int(self.current.text()) + 1 < int(self.pont1.text())):
                 print("érvényes dobás")
                 self.pont1.setText(str(int(self.pont1.text()) - int(self.current.text())))
+                self.check_kiszallo(self.player1_id, self.pont1.text())
                 write_score = int(self.current.text())
                 self.update_stat(self.player1_id, write_score, 3)
                 self.current.setText("")
@@ -463,6 +516,7 @@ class GameWindowDialog(QDialog):
         else:
             if (int(self.current.text()) == 0) or (int(self.current.text()) + 1 == int(self.pont2.text())) or (
                     int(self.current.text()) > int(self.pont2.text())):
+                self.check_kiszallo(self.player2_id, self.pont2.text())
                 write_score = 0
                 self.update_stat(self.player2_id, write_score, 3)
                 self.current.setText("")
@@ -471,6 +525,7 @@ class GameWindowDialog(QDialog):
                     self.round_number += 1
             elif (int(self.current.text()) + 1 < int(self.pont2.text())):
                 self.pont2.setText(str(int(self.pont2.text()) - int(self.current.text())))
+                self.check_kiszallo(self.player2_id, self.pont2.text())
                 write_score = int(self.current.text())
                 self.update_stat(self.player2_id, write_score, 3)
                 self.current.setText("")
