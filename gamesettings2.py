@@ -13,20 +13,13 @@ db = QSqlDatabase.addDatabase('QSQLITE')
 db.setDatabaseName('scorer.db3')
 
 
-if not db.open():
-    QMessageBox.critical(
-        None,
-        "App Name - Error!",
-        "Database Error: %s" % db.lastError().text(),
-    )
-    sys.exit(1)
-
 class GameSettingsDialog(QDialog):
     def __init__(self, parent = None):
         super(GameSettingsDialog, self).__init__(parent)
         self.parent = parent
         self.setModal(True)
         self.setWindowTitle("Game settings")
+        # db = db
 
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)

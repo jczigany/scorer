@@ -4,6 +4,7 @@ from menus import create_menus
 from gamesettings2 import GameSettingsDialog
 from gameon import GameWindowDialog
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
+from database import create_tables
 
 # db = QSqlDatabase.addDatabase('QMYSQL')
 # db.setHostName('localhost')
@@ -20,6 +21,8 @@ if not db.open():
         "Database Error: %s" % db.lastError().text(),
     )
     sys.exit(1)
+else:
+    create_tables(db)
 
 
 class AppWindows(QMainWindow):

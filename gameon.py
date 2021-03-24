@@ -12,6 +12,9 @@ from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableMode
 # db.setPassword('cida')
 # formátum ******    num1: [ [], [], ....],      ********
 kiszallo = {
+    # 180: [['T20', 'T20', 'T20'],],
+    # 179: [['T19', 'T19'],],
+    # 178: [['D16'],],
     170: [['T20', 'T20', 'DB'],],
     167: [['T20', 'T19', 'DB'],],
     164: [['T20', 'T18', 'DB'], ['T19', 'T19', 'DB']],
@@ -53,6 +56,20 @@ kiszallo = {
     125: [['T18', 'T13', 'D16'], ['T20', 'T15', 'D10']],
     124: [['T20', 'T14', 'D11'],],
     123: [['T19', 'T16', 'D9'],],
+    122: [['T18', 'T18', 'D7'],],
+    121: [['T20', 'T11', 'D14'], ['T17', 'T20', 'D5']],
+    120: [['T20', 'S20', 'D20'],],
+    119: [['T19', 'T12', 'D13'],],
+    118: [['T20', 'S18', 'D20'],],
+    117: [['T20', 'S17', 'D20'], ['T19', 'S20', 'D20']],
+    116: [['T19', 'S19', 'D20'], ['T20', 'S16', 'D20']],
+    115: [['T19', 'S18', 'D20'], ['T20', 'S15', 'D20']],
+    114: [['T20', 'S14', 'D20'], ['T19', 'S17', 'D20']],
+    113: [['T19', 'S16', 'D20'],],
+    112: [['T20', 'T12', 'D8'],],
+    111: [['T20', 'S11', 'D20'], ['T19', 'S14', 'D20']],
+    110: [['T20', 'T10', 'D10'], ['T19', 'S13', 'D20'], ['T20', 'DB']],
+    109: [['T20', 'S9', 'D20'], ['T19', 'T12', 'D8']],
 }
 
 db = QSqlDatabase.addDatabase('QSQLITE')
@@ -199,22 +216,38 @@ class GameWindowDialog(QDialog):
         kisz = []
         if p in  kiszallo:
             kisz = kiszallo[p]
-            hossz = len(kisz)
-            # print("hossz: ", hossz)
-            if jatekos == self.player1_id:
-                self.check1.clear()
-                if hossz == 1:
-                    self.check1.append(str(kisz[0][0]) + " - " + str(kisz[0][1]) + " - " + str(kisz[0][2]))
+            # print("Kiszálló string: ", kisz)
+            hossz = len(kisz)   # hány fajta kiszálló van (1-3)
+            # print("Kiszállók száma: ", hossz)
+            if jatekos == self.player1_id:  # Az 1-es játékos esetén
+                self.check1.clear()         # Töröljük a kiszálló mezőt
+                if hossz == 1:              # Ha csak 1 fajta kiszálló van
+                    # print("1 kiszálló van")
+                    k_string = str(kisz[0][0])
+                    for x in range(1,len(kisz[0])):
+                        k_string += (" - " + str(kisz[0][x]))
+                    self.check1.append(k_string)
                 else:
                     for i in range(hossz):
-                        self.check1.append(str(kisz[i][0]) + " - " + str(kisz[i][1]) + " - " + str(kisz[i][2]))
+                        k_string = str(kisz[i][0])
+                        for x in range(1, len(kisz[i])):
+                            k_string += (" - " + str(kisz[i][x]))
+                        self.check1.append(k_string)
+                # print(self.check1.text())
             else:
                 self.check2.clear()
-                if hossz == 1:
-                    self.check2.append(str(kisz[0][0]) + " - " + str(kisz[0][1]) + " - " + str(kisz[0][2]))
+                if hossz == 1:              # Ha csak 1 fajta kiszálló van
+                    # print("1 kiszálló van")
+                    k_string = str(kisz[0][0])
+                    for x in range(1,len(kisz[0])):
+                        k_string += (" - " + str(kisz[0][x]))
+                    self.check2.append(k_string)
                 else:
                     for i in range(hossz):
-                        self.check2.append(str(kisz[i][0]) + " - " + str(kisz[i][1]) + " - " + str(kisz[i][2]))
+                        k_string = str(kisz[i][0])
+                        for x in range(1, len(kisz[i])):
+                            k_string += (" - " + str(kisz[i][x]))
+                        self.check2.append(k_string)
         else:
             if jatekos == self.player1_id:
                 self.check1.clear()
@@ -604,7 +637,7 @@ class GameWindowDialog(QDialog):
         self.info_sor.setLayout(self.info_layout)
         # Az checkout sor. Widget max magassággal, hozzárendelve egy LAYOUT,
         self.checkout_sor = QWidget()
-        self.checkout_sor.setFixedHeight(100)
+        self.checkout_sor.setFixedHeight(120)
         self.checkout_layout = QHBoxLayout()
         self.checkout_sor.setLayout(self.checkout_layout)
         # A státusz sor. Widget max magassággal, hozzárendelve egy LAYOUT,
@@ -648,21 +681,21 @@ class GameWindowDialog(QDialog):
         self.info_layout.addWidget(self.score2_widget)
         # a CHEKOUT1 megjelenítéséhez Widget, layout
         self.check1_widget = QWidget()
-        self.check1_widget.setFixedHeight(100)
+        self.check1_widget.setFixedHeight(120)
         self.check1_layout = QVBoxLayout()
         self.check1_widget.setLayout(self.check1_layout)
         # A PONT2 Widget hozzáadása a checkout layout-hoz
         self.checkout_layout.addWidget(self.check1_widget, 42)
         # A dobott pont megjelenítéséhez Widget, layout
         self.current_widget = QWidget()
-        self.current_widget.setFixedHeight(100)
+        self.current_widget.setFixedHeight(120)
         self.current_layout = QVBoxLayout()
         self.current_widget.setLayout(self.current_layout)
         # Az aktuális pont widget hozzáadása a checkout layout-hoz
         self.checkout_layout.addWidget(self.current_widget, 16)
         # a CHEKOUT2 megjelenítéséhez Widget, layout
         self.check2_widget = QWidget()
-        self.check2_widget.setFixedHeight(100)
+        self.check2_widget.setFixedHeight(120)
         self.check2_layout = QVBoxLayout()
         self.check2_widget.setLayout(self.check2_layout)
         # A PONT2 Widget hozzáadása a checkout layout-hoz
