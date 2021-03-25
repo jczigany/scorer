@@ -70,6 +70,27 @@ kiszallo = {
     111: [['T20', 'S11', 'D20'], ['T19', 'S14', 'D20']],
     110: [['T20', 'T10', 'D10'], ['T19', 'S13', 'D20'], ['T20', 'DB']],
     109: [['T20', 'S9', 'D20'], ['T19', 'T12', 'D8']],
+    108: [['T20', 'S16', 'D16'], ['T19', 'S11', 'D20']],
+    107: [['T19', 'T10', 'D10'], ['T19', 'DB']],
+    106: [['T20', 'T10', ],],
+    105: [['T20', 'S13', 'D16'],],
+    104: [['T19', 'S15', 'D16'], ['T18', 'DB']],
+    103: [['T19', 'S10', 'D18'], ['T19', 'S6', 'D20']],
+    102: [['T20', 'S10', 'D16'],],
+    101: [['T20', 'S9', 'D16'], ['T19', 'T12', 'D4'], ['T17', 'DB']],
+    100: [['T20', 'D20'],],
+    99: [['T19', 'S10', 'D16'],],
+    98: [['T20', 'D19'],],
+    97: [['T19', 'D20'],],
+    96: [['T20', 'D18'],],
+    95: [['SB', 'T20', 'D5'], ['T19', 'D19']],
+    94: [['SB', 'T19', 'D6'], ['T18', 'D20']],
+    93: [['SB', 'T18', 'D7'], ['T19', 'D18']],
+    92: [['T20', 'D16'], ['SB', 'T17', 'D8']],
+    91: [['T17', 'D20'], ['SB', 'T16', 'D9']],
+    90: [['T18', 'D18'], ['T20', 'D15']],
+    89: [['T19', 'D16'],],
+
 }
 
 db = QSqlDatabase.addDatabase('QSQLITE')
@@ -83,6 +104,36 @@ if not db.open():
     )
     sys.exit(1)
 
+class CustomQLineEdit(QLineEdit):
+    def __init__(self):
+        super(CustomQLineEdit, self).__init__()
+        self.signal = Signal()
+
+    def keyPressEvent(self, event):
+
+        if event.key() == Qt.Key_F2:
+            self.setText("26")
+            self.returnPressed.emit()
+        if event.key() == Qt.Key_F3:
+            self.setText("41")
+            self.returnPressed.emit()
+        if event.key() == Qt.Key_F4:
+            self.setText("45")
+            self.returnPressed.emit()
+        if event.key() == Qt.Key_F5:
+            self.setText("60")
+            self.returnPressed.emit()
+        if event.key() == Qt.Key_F6:
+            self.setText("81")
+            self.returnPressed.emit()
+        if event.key() == Qt.Key_F7:
+            self.setText("85")
+            self.returnPressed.emit()
+        if event.key() == Qt.Key_F8:
+            self.setText("100")
+            self.returnPressed.emit()
+        else:
+            QLineEdit.keyPressEvent(self, event)
 
 class CustomQLabel(QLabel):
     def __init__(self, param = ""):
@@ -91,6 +142,15 @@ class CustomQLabel(QLabel):
         self.setTextFormat(Qt.RichText)
         self.setStyleSheet("font-size: 18px; font-family: Cuorier New")
         self.setAlignment(Qt.AlignCenter)
+
+
+class CustomHelpLabel(QLabel):
+    def __init__(self, param = ""):
+        super(CustomHelpLabel, self).__init__()
+        self.setText(param)
+        self.setFixedWidth(70)
+        self.setAlignment(Qt.AlignCenter)
+        self.setStyleSheet("background-color: lightgray; font-size: 20px")
 
 
 class CustomIntLabel(CustomQLabel):
@@ -131,6 +191,7 @@ class GameWindowDialog(QDialog):
         self.params = []
         self.set_layouts()
         self.alapertekek()
+        self.help_felirat()
         # A neveket tartalmazó QLabel-ek létrehozása, hozzáadása a neveket tartalmazó layout-hoz
         self.nev1 = QLabel()
         self.nev1.setAlignment(Qt.AlignCenter)
@@ -146,18 +207,39 @@ class GameWindowDialog(QDialog):
         self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 75px")
         self.score1_layout.addWidget(self.pont1)
         # Set1, Leg1 megjelenítéséhez Widget, Layout
-        self.leg1_layout.addWidget(QLabel("Leg:"))
+        # self.leg1_layout.addWidget(QLabel("Leg:"))
         self.leg1 = QLabel("0")
+        self.leg1.setFixedWidth(200)
+        self.leg1.setAlignment(Qt.AlignRight)
+        self.leg1.setStyleSheet("font-size: 25px")
         self.leg1_layout.addWidget(self.leg1)
-        self.set1_layout.addWidget(QLabel("Set:"))
+        # self.set1_layout.addWidget(QLabel("Set:"))
         self.set1 = QLabel("0")
+        self.set1.setFixedWidth(200)
+        self.set1.setAlignment(Qt.AlignRight)
+        self.set1.setStyleSheet("font-size: 25px")
         self.set1_layout.addWidget(self.set1)
+        # A Leg és szet felirat külön
+        self.leg_cimke = QLabel("Legs")
+        self.leg_cimke.setAlignment(Qt.AlignCenter)
+        self.leg_cimke.setStyleSheet("font-size: 25px")
+        self.set_cimke = QLabel("Sets")
+        self.set_cimke.setAlignment(Qt.AlignCenter)
+        self.set_cimke.setStyleSheet("font-size: 25px")
+        self.legset_layout.addWidget(self.leg_cimke)
+        self.legset_layout.addWidget(self.set_cimke)
         # Set2, Leg2 megjelenítéséhez Widget, Layout
-        self.leg2_layout.addWidget(QLabel("Leg:"))
+        # self.leg2_layout.addWidget(QLabel("Leg:"))
         self.leg2 = QLabel("0")
+        self.leg2.setFixedWidth(200)
+        self.leg2.setAlignment(Qt.AlignLeft)
+        self.leg2.setStyleSheet("font-size: 25px")
         self.leg2_layout.addWidget(self.leg2)
-        self.set2_layout.addWidget(QLabel("Set:"))
+        # self.set2_layout.addWidget(QLabel("Set:"))
         self.set2 = QLabel("0")
+        self.set2.setFixedWidth(200)
+        self.set2.setAlignment(Qt.AlignLeft)
+        self.set2.setStyleSheet("font-size: 25px")
         self.set2_layout.addWidget(self.set2)
         # A konkrét pontszámot tartalmazó widget hozzáadása a pont2 widget layout-jához
         self.pont2 = QLabel("501")
@@ -180,13 +262,14 @@ class GameWindowDialog(QDialog):
         self.check2_layout.addWidget(self.check2)
         # Az aktuális pontszámot tartalmazó Widget hozzáadása a current widget layout-jához
         validator = QIntValidator(0,180)
-        self.current = QLineEdit()
+        self.current = CustomQLineEdit()
         self.current.setValidator(validator)
         self.current.setFocus()
         self.current.setAlignment(Qt.AlignCenter)
         self.current.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 50px")
         self.current_layout.addWidget(self.current)
         self.current.returnPressed.connect(self.pont_beirva)
+        # self.current.signal.connect(self.pont_beirva)
         # A statisztika1-et tartalmazo widget hozzáadása a stat1 layout-hoz
         # statisztikai változók
         self.stat1()
@@ -621,6 +704,26 @@ class GameWindowDialog(QDialog):
         self.darab9_1 = 0
         self.darab9_2 = 0
 
+    def help_felirat(self):
+        c1 = CustomHelpLabel("F2: 26")
+        self.help_layout.addWidget(c1)
+        c2 = CustomHelpLabel("F3: 41")
+        self.help_layout.addWidget(c2)
+        c3 = CustomHelpLabel("F4: 45")
+        self.help_layout.addWidget(c3)
+        c4 = CustomHelpLabel("F5: 60")
+        self.help_layout.addWidget(c4)
+        c5 = CustomHelpLabel("F6: 81")
+        self.help_layout.addWidget(c5)
+        c6 = CustomHelpLabel("F7: 85")
+        self.help_layout.addWidget(c6)
+        c7 = CustomHelpLabel("F8: 100")
+        self.help_layout.addWidget(c7)
+        # self.space = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        # self.help_layout.addItem(self.space)
+        self.help_layout.addStretch(0)
+
+
     def set_layouts(self):
         # Fő LAYOUT létrehozása, beállítása
         self.layout = QVBoxLayout()
@@ -642,9 +745,13 @@ class GameWindowDialog(QDialog):
         self.checkout_sor.setLayout(self.checkout_layout)
         # A státusz sor. Widget max magassággal, hozzárendelve egy LAYOUT,
         self.statusz_sor = QWidget()
-        self.statusz_sor.setFixedHeight(500)
+        self.statusz_sor.setFixedHeight(460)
         self.statusz_layout = QHBoxLayout()
         self.statusz_sor.setLayout(self.statusz_layout)
+        self.help_sor = QWidget()
+        self.help_sor.setFixedHeight(35)
+        self.help_layout = QHBoxLayout()
+        self.help_sor.setLayout(self.help_layout)
         # a PONT1 megjelenítéséhez Widget, layout
         self.score1_widget = QWidget()
         self.score1_widget.setFixedHeight(100)
@@ -662,6 +769,11 @@ class GameWindowDialog(QDialog):
         self.legset1_layout.addLayout(self.leg1_layout)
         self.legset1_layout.addLayout(self.set1_layout)
         self.info_layout.addWidget(self.legset1_widget)
+        self.legset_widget = QWidget()
+        self.legset_widget.setMaximumHeight(100)
+        self.legset_layout = QVBoxLayout()
+        self.legset_widget.setLayout(self.legset_layout)
+        self.info_layout.addWidget(self.legset_widget)
         # Set2, Leg2 megjelenítéséhez Widget, Layout
         self.legset2_widget = QWidget()
         self.legset2_widget.setMaximumHeight(100)
@@ -702,28 +814,28 @@ class GameWindowDialog(QDialog):
         self.checkout_layout.addWidget(self.check2_widget, 42)
         # a STAT1 megjelenítéséhez Widget, layout
         self.stat1_widget = QWidget()
-        self.stat1_widget.setFixedHeight(500)
+        self.stat1_widget.setFixedHeight(460)
         self.stat1_layout = QVBoxLayout()
         self.stat1_widget.setLayout(self.stat1_layout)
         # A stat1 Widget hozzáadása a statusz layout-hoz
         self.statusz_layout.addWidget(self.stat1_widget, 20)
         #A körök1 megjelenítéséhez widget, layout
         self.round1_widget = QWidget()
-        self.round1_widget.setFixedHeight(500)
+        self.round1_widget.setFixedHeight(460)
         self.round1_layout = QVBoxLayout()
         self.round1_widget.setLayout(self.round1_layout)
         # A round1 widget hozzáadása a statusz layout-hoz
         self.statusz_layout.addWidget(self.round1_widget, 30)
         # A körök2 megjelenítéséhez widget, layout
         self.round2_widget = QWidget()
-        self.round2_widget.setFixedHeight(500)
+        self.round2_widget.setFixedHeight(460)
         self.round2_layout = QVBoxLayout()
         self.round2_widget.setLayout(self.round2_layout)
         # A round1 widget hozzáadása a statusz layout-hoz
         self.statusz_layout.addWidget(self.round2_widget, 30)
         # a STAT2 megjelenítéséhez Widget, layout
         self.stat2_widget = QWidget()
-        self.stat2_widget.setFixedHeight(500)
+        self.stat2_widget.setFixedHeight(460)
         self.stat2_layout = QVBoxLayout()
         self.stat2_widget.setLayout(self.stat2_layout)
         # A stat2 Widget hozzáadása a statusz layout-hoz
@@ -734,6 +846,7 @@ class GameWindowDialog(QDialog):
         self.layout.addWidget(self.info_sor)
         self.layout.addWidget(self.checkout_sor)
         self.layout.addWidget(self.statusz_sor)
+        self.layout.addWidget(self.help_sor)
         self.space = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.layout.addItem(self.space)
 

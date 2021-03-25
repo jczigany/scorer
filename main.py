@@ -37,12 +37,12 @@ class AppWindows(QMainWindow):
         # A menus.py definiálja a menüpontokat
         create_menus(self)
 
-        self.match_layout = QVBoxLayout()
-        # self.GameWindow = GameWindowDialog()
-        # self.main_layout.addWidget(self.GameWindow)
-        self.match_layout.addWidget(QPushButton("megy a mecss"))
-        self.cimke = QLabel("Csak felirat")
-        # self.GameWindow = GameWindowDialog()
+        # self.match_layout = QVBoxLayout()
+        # # self.GameWindow = GameWindowDialog()
+        # # self.main_layout.addWidget(self.GameWindow)
+        # self.match_layout.addWidget(QPushButton("megy a mecss"))
+        # self.cimke = QLabel("Csak felirat")
+        # # self.GameWindow = GameWindowDialog()
         # self.GameWindow.setWindowTitle("Game On!")
         # self.main_layout.addWidget(self.GameWindow)
 
