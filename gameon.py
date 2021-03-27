@@ -105,10 +105,10 @@ if not db.open():
     sys.exit(1)
 
 class CustomQLineEdit(QLineEdit):
-    def __init__(self):
-        super(CustomQLineEdit, self).__init__()
+    def __init__(self, parent):
+        super(CustomQLineEdit, self).__init__(parent)
         self.signal = Signal()
-
+        self.parent = parent
     def keyPressEvent(self, event):
 
         if event.key() == Qt.Key_F2:
@@ -131,6 +131,12 @@ class CustomQLineEdit(QLineEdit):
             self.returnPressed.emit()
         if event.key() == Qt.Key_F8:
             self.setText("100")
+            self.returnPressed.emit()
+        if event.key() == Qt.Key_F9:
+            if self.parent.akt_score == 'score_1':
+                self.setText(str(int(self.parent.pont1.text()) - int(self.text())))
+            else:
+                self.setText(str(int(self.parent.pont2.text()) - int(self.text())))
             self.returnPressed.emit()
         else:
             QLineEdit.keyPressEvent(self, event)
@@ -193,27 +199,83 @@ class GameWindowDialog(QDialog):
         self.alapertekek()
         self.help_felirat()
         # A neveket tartalmazó QLabel-ek létrehozása, hozzáadása a neveket tartalmazó layout-hoz
-        self.nev1 = QLabel()
-        self.nev1.setAlignment(Qt.AlignCenter)
-        self.nev1.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 35px; font-family: Cuorier New")
-        self.nev2 = QLabel()
-        self.nev2.setAlignment(Qt.AlignCenter)
-        self.nev2.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 35px; font-family: Cuorier New")
-        self.nevek_layout.addWidget(self.nev1)
-        self.nevek_layout.addWidget(self.nev2)
+        self.nev_widgetek()
         # A konkrét pontszámot tartalmazó widget hozzáadása a pont1 widget layout-jához
+        self.pontszamok()
+        # A CHEKOUT1-ET tartalmazó Widget hozzáadása a checkout1 widget layout-jához
+        self.checkouts()
+        # Az aktuális pontszámot tartalmazó Widget hozzáadása a current widget layout-jához
+        self.dobott_pontszam()
+        # A statisztika1-et tartalmazo widget hozzáadása a stat1 layout-hoz
+        self.stat1()
+        # A statisztika2-et tartalmazo widget hozzáadása a stat2 layout-hoz
+        self.stat2()
+        # A körök1(2)-et tartalmazo widget hozzáadása a korok1(2) layout-hoz
+        self.dobasok_listaja()
+
+    def dobott_pontszam(self):
+        # Az aktuális pontszámot tartalmazó Widget hozzáadása a current widget layout-jához
+        validator = QIntValidator(0, 180)
+        self.current = CustomQLineEdit(self)
+        self.current.setValidator(validator)
+        self.current.setFocus()
+        self.current.setAlignment(Qt.AlignCenter)
+        self.current.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 50px")
+        self.current_layout.addWidget(self.current)
+        self.current.returnPressed.connect(self.pont_beirva)
+
+    def pontszamok(self):
         self.pont1 = QLabel("501")
         self.pont1.setAlignment(Qt.AlignCenter)
         self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 75px")
         self.score1_layout.addWidget(self.pont1)
+        # Set, Leg megjelenítéséhez Widget, Layout
+        self.eredmeny_widgetek()
+        # # A konkrét pontszámot tartalmazó widget hozzáadása a pont2 widget layout-jához
+        self.pont2 = QLabel("501")
+        self.pont2.setAlignment(Qt.AlignCenter)
+        self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 75px")
+        self.score2_layout.addWidget(self.pont2)
+
+    def checkouts(self):
+        # A CHEKOUT1-ET tartalmazó Widget hozzáadása a checkout1 widget layout-jához
+        self.check1 = QTextEdit()
+        self.check1.setDisabled(True)
+        self.check1.setAlignment(Qt.AlignLeft)
+        self.check1.setStyleSheet("font-size: 20px; color: red")
+        cimke1 = QLabel("Kiszálló javaslat:")
+        cimke1.setStyleSheet("font-size: 15px")
+        cimke2 = QLabel("Kiszálló javaslat:")
+        cimke2.setStyleSheet("font-size: 15px")
+        self.check1_layout.addWidget(cimke1)
+        self.check1_layout.addWidget(self.check1)
+        # A CHEKOUT2-ET tartalmazó Widget hozzáadása a checkout2 widget layout-jához
+        self.check2 = QTextEdit()
+        self.check2.setDisabled(True)
+        self.check2.setAlignment(Qt.AlignRight)
+        self.check2.setStyleSheet("font-size: 20px; color: red")
+        self.check2_layout.addWidget(cimke2)
+        self.check2_layout.addWidget(self.check2)
+
+    def dobasok_listaja(self):
+        # A körök1-et tartalmazo widget hozzáadása a korok1 layout-hoz
+        self.kor1 = QTextEdit()
+        self.kor1.setAlignment(Qt.AlignCenter)
+        self.kor1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 20px")
+        self.round1_layout.addWidget(self.kor1)
+        # A körök2-et tartalmazo widget hozzáadása a korok2 layout-hoz
+        self.kor2 = QTextEdit()
+        self.kor2.setAlignment(Qt.AlignCenter)
+        self.kor2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 20px")
+        self.round2_layout.addWidget(self.kor2)
+
+    def eredmeny_widgetek(self):
         # Set1, Leg1 megjelenítéséhez Widget, Layout
-        # self.leg1_layout.addWidget(QLabel("Leg:"))
         self.leg1 = QLabel("0")
         self.leg1.setFixedWidth(200)
         self.leg1.setAlignment(Qt.AlignRight)
         self.leg1.setStyleSheet("font-size: 25px")
         self.leg1_layout.addWidget(self.leg1)
-        # self.set1_layout.addWidget(QLabel("Set:"))
         self.set1 = QLabel("0")
         self.set1.setFixedWidth(200)
         self.set1.setAlignment(Qt.AlignRight)
@@ -229,70 +291,29 @@ class GameWindowDialog(QDialog):
         self.legset_layout.addWidget(self.leg_cimke)
         self.legset_layout.addWidget(self.set_cimke)
         # Set2, Leg2 megjelenítéséhez Widget, Layout
-        # self.leg2_layout.addWidget(QLabel("Leg:"))
         self.leg2 = QLabel("0")
         self.leg2.setFixedWidth(200)
         self.leg2.setAlignment(Qt.AlignLeft)
         self.leg2.setStyleSheet("font-size: 25px")
         self.leg2_layout.addWidget(self.leg2)
-        # self.set2_layout.addWidget(QLabel("Set:"))
         self.set2 = QLabel("0")
         self.set2.setFixedWidth(200)
         self.set2.setAlignment(Qt.AlignLeft)
         self.set2.setStyleSheet("font-size: 25px")
         self.set2_layout.addWidget(self.set2)
-        # A konkrét pontszámot tartalmazó widget hozzáadása a pont2 widget layout-jához
-        self.pont2 = QLabel("501")
-        self.pont2.setAlignment(Qt.AlignCenter)
-        self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 75px")
-        self.score2_layout.addWidget(self.pont2)
-        # A CHEKOUT1-ET tartalmazó Widget hozzáadása a checkout1 widget layout-jához
-        self.check1 = QTextEdit()
-        self.check1.setDisabled(True)
-        self.check1.setAlignment(Qt.AlignLeft)
-        self.check1.setStyleSheet("font-size: 20px; color: red")
-        self.check1_layout.addWidget(QLabel("Kiszálló javaslat:"))
-        self.check1_layout.addWidget(self.check1)
-        # A CHEKOUT2-ET tartalmazó Widget hozzáadása a checkout2 widget layout-jához
-        self.check2 = QTextEdit()
-        self.check2.setDisabled(True)
-        self.check2.setAlignment(Qt.AlignRight)
-        self.check2.setStyleSheet("font-size: 20px; color: red")
-        self.check2_layout.addWidget(QLabel("Kiszálló javaslat:"))
-        self.check2_layout.addWidget(self.check2)
-        # Az aktuális pontszámot tartalmazó Widget hozzáadása a current widget layout-jához
-        validator = QIntValidator(0,180)
-        self.current = CustomQLineEdit()
-        self.current.setValidator(validator)
-        self.current.setFocus()
-        self.current.setAlignment(Qt.AlignCenter)
-        self.current.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 50px")
-        self.current_layout.addWidget(self.current)
-        self.current.returnPressed.connect(self.pont_beirva)
-        # self.current.signal.connect(self.pont_beirva)
-        # A statisztika1-et tartalmazo widget hozzáadása a stat1 layout-hoz
-        # statisztikai változók
-        self.stat1()
-        # self.stat1 = QTextEdit()
-        # self.stat1.setAlignment(Qt.AlignLeft)
-        # self.stat1.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 20px")
-        # self.stat1_layout.addWidget(self.stat1)
-        # A statisztika2-et tartalmazo widget hozzáadása a stat2 layout-hoz
-        self.stat2()
-        # self.stat2 = QTextEdit()
-        # self.stat2.setAlignment(Qt.AlignLeft)
-        # self.stat2.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 20px")
-        # self.stat2_layout.addWidget(self.stat2)
-        # A körök1-et tartalmazo widget hozzáadása a korok1 layout-hoz
-        self.kor1 = QTextEdit()
-        self.kor1.setAlignment(Qt.AlignCenter)
-        self.kor1.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 20px")
-        self.round1_layout.addWidget(self.kor1)
-        # A körök2-et tartalmazo widget hozzáadása a korok2 layout-hoz
-        self.kor2 = QTextEdit()
-        self.kor2.setAlignment(Qt.AlignCenter)
-        self.kor2.setStyleSheet("background-color: cornflowerblue; border-radius: 5px; font-size: 20px")
-        self.round2_layout.addWidget(self.kor2)
+
+    def nev_widgetek(self):
+        # A neveket tartalmazó QLabel-ek létrehozása, hozzáadása a neveket tartalmazó layout-hoz
+        self.nev1 = QLabel()
+        self.nev1.setAlignment(Qt.AlignCenter)
+        self.nev1.setStyleSheet(
+            "background-color: lightgray; border-radius: 5px; font-size: 35px; font-family: Cuorier New")
+        self.nev2 = QLabel()
+        self.nev2.setAlignment(Qt.AlignCenter)
+        self.nev2.setStyleSheet(
+            "background-color: lightgray; border-radius: 5px; font-size: 35px; font-family: Cuorier New")
+        self.nevek_layout.addWidget(self.nev1)
+        self.nevek_layout.addWidget(self.nev2)
 
     def check_kiszallo(self, jatekos, pont):
         p = int(pont)
@@ -719,6 +740,9 @@ class GameWindowDialog(QDialog):
         self.help_layout.addWidget(c6)
         c7 = CustomHelpLabel("F8: 100")
         self.help_layout.addWidget(c7)
+        c8 = CustomHelpLabel("F9: Marad")
+        c8.setFixedWidth(90)
+        self.help_layout.addWidget(c8)
         # self.space = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
         # self.help_layout.addItem(self.space)
         self.help_layout.addStretch(0)
@@ -797,21 +821,21 @@ class GameWindowDialog(QDialog):
         self.check1_layout = QVBoxLayout()
         self.check1_widget.setLayout(self.check1_layout)
         # A PONT2 Widget hozzáadása a checkout layout-hoz
-        self.checkout_layout.addWidget(self.check1_widget, 42)
+        self.checkout_layout.addWidget(self.check1_widget, 40)
         # A dobott pont megjelenítéséhez Widget, layout
         self.current_widget = QWidget()
         self.current_widget.setFixedHeight(120)
         self.current_layout = QVBoxLayout()
         self.current_widget.setLayout(self.current_layout)
         # Az aktuális pont widget hozzáadása a checkout layout-hoz
-        self.checkout_layout.addWidget(self.current_widget, 16)
+        self.checkout_layout.addWidget(self.current_widget, 20)
         # a CHEKOUT2 megjelenítéséhez Widget, layout
         self.check2_widget = QWidget()
         self.check2_widget.setFixedHeight(120)
         self.check2_layout = QVBoxLayout()
         self.check2_widget.setLayout(self.check2_layout)
         # A PONT2 Widget hozzáadása a checkout layout-hoz
-        self.checkout_layout.addWidget(self.check2_widget, 42)
+        self.checkout_layout.addWidget(self.check2_widget, 40)
         # a STAT1 megjelenítéséhez Widget, layout
         self.stat1_widget = QWidget()
         self.stat1_widget.setFixedHeight(460)
