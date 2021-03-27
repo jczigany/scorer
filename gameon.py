@@ -1,7 +1,7 @@
 from PySide2.QtWidgets import QSpacerItem, QWidget, QMessageBox, QDialog, QLabel, QLineEdit, \
     QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QApplication, QSizePolicy, QTextEdit, QInputDialog
 from PySide2.QtCore import *
-from PySide2.QtGui import QRegExpValidator, QIntValidator
+from PySide2.QtGui import QRegExpValidator, QIntValidator, QFont
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
 
 
@@ -110,7 +110,9 @@ class CustomQLineEdit(QLineEdit):
         self.signal = Signal()
         self.parent = parent
     def keyPressEvent(self, event):
-
+        if event.key() == Qt.Key_F1:
+            self.setText("0")
+            self.returnPressed.emit()
         if event.key() == Qt.Key_F2:
             self.setText("26")
             self.returnPressed.emit()
@@ -515,7 +517,6 @@ class GameWindowDialog(QDialog):
         record.setValue(2, self.set_id)
         record.setValue(3, winner)
         record.setValue(6, now)
-        print(record)
         if leg_model.insertRecord(-1, record):
             leg_model.submitAll()
             # dobas_model = None
@@ -539,6 +540,10 @@ class GameWindowDialog(QDialog):
 
     def end_game(self):
         self.current.setDisabled(True)
+        self.kor1.setDisabled(True)
+        self.kor2.setDisabled(True)
+        self.check1.clear()
+        self.check2.clear()
 
     def result_status(self):
         """
@@ -587,21 +592,21 @@ class GameWindowDialog(QDialog):
                 self.leg_id = 1
             else:
                 msg = QMessageBox()
+                msg.setStyleSheet("fonz-size: 20px")
                 msg.setWindowTitle("A játék véget ért!")
                 # Vége a meccsnek, valaki nyert
                 print("GAME OVER!!!!!!!!!!")
                 if self.won_sets_1 > self.won_sets_2:
-                    msg.setText("A játékot nyerte: " + self.nev1.text())
-                    # print("A játékot nyerte: ", self.nev1.text())
+                    msg.setText('<html style="font-size: 16px;">A játékot nyerte:  </html>' + '<html style="font-size: 20px; color: red">' + self.nev1.text() + '</html')
                 else:
-                    msg.setText("A játékot nyerte: " + self.nev2.text())
-                    # print("A játékot nyerte: ", self.nev2.text())
-                if msg.exec_():
-                    self.close()
+                    msg.setText('<html style="font-size: 16px;">A játékot nyerte:  </html>' + '<html style="font-size: 20px; color: red">' + self.nev2.text() + '</html')
+                # if msg.exec_():
+                #     self.close()
+                msg.exec_()
                 self.end_game()
 
     def hany_kiszallo(self):
-        kiszallo, ok = QInputDialog.getInt(self, "Kiszálló", "Hány nyílból dobtad meg?", 3, 1, 3)
+        kiszallo, ok = QInputDialog.getInt(self, "Kiszálló", '<html style="font-size: 15px;"> Hány nyílból dobtad meg?</html>', 3, 1, 3)
         if ok and kiszallo:
             return kiszallo
         else:
@@ -726,6 +731,8 @@ class GameWindowDialog(QDialog):
         self.darab9_2 = 0
 
     def help_felirat(self):
+        c0 = CustomHelpLabel("F1: 0")
+        self.help_layout.addWidget(c0)
         c1 = CustomHelpLabel("F2: 26")
         self.help_layout.addWidget(c1)
         c2 = CustomHelpLabel("F3: 41")
