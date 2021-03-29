@@ -1,7 +1,7 @@
 from PySide2.QtWidgets import QSpacerItem, QWidget, QMessageBox, QDialog, QLabel, QLineEdit, \
     QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QApplication, QSizePolicy, QTextEdit, QInputDialog
 from PySide2.QtCore import *
-from PySide2.QtGui import QRegExpValidator, QIntValidator, QFont
+from PySide2.QtGui import QRegExpValidator, QIntValidator, QFont, QTextCursor
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
 
 
@@ -109,39 +109,106 @@ class CustomQLineEdit(QLineEdit):
         super(CustomQLineEdit, self).__init__(parent)
         self.signal = Signal()
         self.parent = parent
+
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_F1:
             self.setText("0")
             self.returnPressed.emit()
-        if event.key() == Qt.Key_F2:
+        elif event.key() == Qt.Key_F2:
             self.setText("26")
             self.returnPressed.emit()
-        if event.key() == Qt.Key_F3:
+        elif event.key() == Qt.Key_F3:
             self.setText("41")
             self.returnPressed.emit()
-        if event.key() == Qt.Key_F4:
+        elif event.key() == Qt.Key_F4:
             self.setText("45")
             self.returnPressed.emit()
-        if event.key() == Qt.Key_F5:
+        elif event.key() == Qt.Key_F5:
             self.setText("60")
             self.returnPressed.emit()
-        if event.key() == Qt.Key_F6:
+        elif event.key() == Qt.Key_F6:
             self.setText("81")
             self.returnPressed.emit()
-        if event.key() == Qt.Key_F7:
+        elif event.key() == Qt.Key_F7:
             self.setText("85")
             self.returnPressed.emit()
-        if event.key() == Qt.Key_F8:
+        elif event.key() == Qt.Key_F8:
             self.setText("100")
             self.returnPressed.emit()
-        if event.key() == Qt.Key_F9:
+        elif event.key() == Qt.Key_F9:
             if self.parent.akt_score == 'score_1':
                 self.setText(str(int(self.parent.pont1.text()) - int(self.text())))
             else:
                 self.setText(str(int(self.parent.pont2.text()) - int(self.text())))
             self.returnPressed.emit()
+        elif event.key()  == Qt.Key_Escape:
+            pass
+        elif (event.modifiers() & Qt.ControlModifier) and event.key() == Qt.Key_B:
+            self.visszavon()
         else:
             QLineEdit.keyPressEvent(self, event)
+
+    def visszavon(self):
+        # 1.a a dobas táblából az utolsó rekordot kiolvasni, \
+        # dobás értékét + round_number-t, player_id-t megállapítani (match_id, set_id, leg_id, last)
+        query = QSqlQuery("select * from dobas order by timestamp desc limit 1")
+        rec_model = QSqlQueryModel()
+        rec_model.setQuery(query)
+        print(rec_model.record(0))
+        score = int(rec_model.record(0).value(2))
+        kor = int(rec_model.record(0).value(1))
+        jatekos = int(rec_model.record(0).value(0))
+        # 1.b a match_settings-bol kiszedni a variant-ot az adott match_id alapján
+        query2 = QSqlQuery(f"select variant from match_settings where match_id = {self.parent.match_id}")
+        var_model = QSqlQueryModel()
+        var_model.setQuery(query2)
+        variant = var_model.record(0).value(0)
+        # 2. az akt_score alapján váltani az előző játékosra (akt_score == 'score_1)
+        if self.parent.akt_score == 'score_1':
+            if int(self.parent.pont2.text()) != int(variant):
+                self.parent.akt_score = 'score_2'
+                # 3.a az adott játékos pontszámát megnövelni a dobott ponttal (pont1, pont2)
+                self.parent.pont2.setText(str(int(self.parent.pont2.text()) + score))
+                # 3.b dobások listájából kivenni az utolsót
+                cursor = self.parent.kor2.textCursor()
+                cursor.movePosition(QTextCursor.End)
+                cursor.select(QTextCursor.LineUnderCursor)
+                cursor.removeSelectedText()
+                cursor.deletePreviousChar()
+                self.parent.kor2.setTextCursor(cursor)
+                # csak ha a 2. játékosnál vonunk vissza
+                self.parent.round_number -= 1
+                # 4. a kovetkezo_jatekos-bol "kivenni" a játékos váltást
+                self.parent.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 60px")
+                self.parent.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 60px")
+                # 5. dobas táblából törölni a kiválasztott rekordot
+                query1 = QSqlQuery(f"delete from dobas where match_id = {self.parent.match_id} and set_id = {self.parent.set_id} and leg_id = {self.parent.leg_id} and round_number = {kor} and player_id = {jatekos}", db=db)
+                query1.exec_()
+            else:
+                pass
+        else:
+            if int(self.parent.pont1.text()) != int(variant):
+                self.parent.akt_score = 'score_1'
+                # 3.a az adott játékos pontszámát megnövelni a dobott ponttal (pont1, pont2)
+                self.parent.pont1.setText(str(int(self.parent.pont1.text()) + score))
+                # 3.b dobások listájából kivenni az utolsót
+                cursor = self.parent.kor1.textCursor()
+                cursor.movePosition(QTextCursor.End)
+                cursor.select(QTextCursor.LineUnderCursor)
+                cursor.removeSelectedText()
+                cursor.deletePreviousChar()
+                self.parent.kor1.setTextCursor(cursor)
+                # csak ha a 2. játékosnál vonunk vissza
+                # self.parent.round_number -= 1
+                # 4. a kovetkezo_jatekos-bol "kivenni" a játékos váltást
+                self.parent.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 60px")
+                self.parent.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 60px")
+                # 5. dobas táblából törölni a kiválasztott rekordot
+                query1 = QSqlQuery(
+                    f"delete from dobas where match_id = {self.parent.match_id} and set_id = {self.parent.set_id} and leg_id = {self.parent.leg_id} and round_number = {kor} and player_id = {jatekos}",db=db)
+                query1.exec_()
+            else:
+                pass
 
 class CustomQLabel(QLabel):
     def __init__(self, param = ""):
@@ -158,7 +225,7 @@ class CustomHelpLabel(QLabel):
         self.setText(param)
         self.setFixedWidth(70)
         self.setAlignment(Qt.AlignCenter)
-        self.setStyleSheet("background-color: lightgray; font-size: 20px")
+        self.setStyleSheet("background-color: lightgray; font-size: 18px")
 
 
 class CustomIntLabel(CustomQLabel):
@@ -267,6 +334,14 @@ class GameWindowDialog(QDialog):
         self.round1_layout.addWidget(self.kor1)
         # A körök2-et tartalmazo widget hozzáadása a korok2 layout-hoz
         self.kor2 = QTextEdit()
+
+        # cursor = self.kor2.textCursor()
+        # cursor.movePosition(QTextCursor.End)
+        # cursor.select(QTextCursor.LineUnderCursor)
+        # cursor.removeSelectedText()
+        # cursor.deletePreviousChar()
+        # self.kor2.setTextCursor(cursor)
+
         self.kor2.setAlignment(Qt.AlignCenter)
         self.kor2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 20px")
         self.round2_layout.addWidget(self.kor2)
@@ -748,12 +823,14 @@ class GameWindowDialog(QDialog):
         c7 = CustomHelpLabel("F8: 100")
         self.help_layout.addWidget(c7)
         c8 = CustomHelpLabel("F9: Marad")
-        c8.setFixedWidth(90)
+        c8.setFixedWidth(95)
         self.help_layout.addWidget(c8)
+        c9 = CustomHelpLabel("CTRL-B: Visszavon")
+        c9.setFixedWidth(165)
+        self.help_layout.addWidget(c9)
         # self.space = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
         # self.help_layout.addItem(self.space)
         self.help_layout.addStretch(0)
-
 
     def set_layouts(self):
         # Fő LAYOUT létrehozása, beállítása
@@ -898,7 +975,7 @@ class GameWindowDialog(QDialog):
         self.pont1.setText(self.params[5])
         self.pont2.setText(self.params[5])
         self.setperleg = self.params[6]
-        self.sets= self.params[7]
+        self.sets = self.params[7]
 
 
 if __name__ == '__main__':
@@ -906,5 +983,3 @@ if __name__ == '__main__':
     win = GameWindowDialog()
     win.show()
     app.exec_()
-
-    # http://www.nydc.hu/documents/082636-d4fha.pdf
