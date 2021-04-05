@@ -1,7 +1,7 @@
-from PySide2.QtWidgets import QSpacerItem, QWidget, QMessageBox, QDialog, QLabel, QLineEdit, \
+from PySide2.QtWidgets import QMainWindow, QGraphicsOpacityEffect, QSpacerItem, QWidget, QMessageBox, QDialog, QLabel, QLineEdit, \
     QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QApplication, QSizePolicy, QTextEdit, QInputDialog
 from PySide2.QtCore import *
-from PySide2.QtGui import QRegExpValidator, QIntValidator, QFont, QTextCursor
+from PySide2.QtGui import QRegExpValidator, QIntValidator, QFont, QTextCursor, QPainter, QPixmap, QPalette, QBrush, QImage
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
 
 
@@ -347,9 +347,12 @@ class GameWindowDialog(QDialog):
         super(GameWindowDialog, self).__init__(parent)
         self.parent = parent
         self.setModal(True)
-        self.resize(1000, 800)
+        # self.showMaximized()
 
         self.params = []
+        self.background_image = QImage("images/gdc_logo_uj.png")
+        self.image_rect = QRect()
+
         self.set_layouts()
         self.alapertekek()
         self.help_felirat()
@@ -368,6 +371,20 @@ class GameWindowDialog(QDialog):
         # A körök1(2)-et tartalmazo widget hozzáadása a korok1(2) layout-hoz
         self.dobasok_listaja()
 
+    def paintEvent(self, e):
+        painter = QPainter()
+        painter.begin(self)
+        self.drawWidget(painter)
+        painter.end()
+
+    def drawWidget(self, painter):
+        rect = self.rect()
+        hatter = self.background_image.scaled(QSize(rect.width(), rect.height()), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.image_rect.setRect(rect.x(), rect.y(), hatter.width(), hatter.height())
+        self.image_rect.moveCenter(rect.center())
+        painter.setOpacity(0.05)
+        painter.drawImage(self.image_rect, QImage(hatter))
+
     def dobott_pontszam(self):
         # Az aktuális pontszámot tartalmazó Widget hozzáadása a current widget layout-jához
         validator = QIntValidator(0, 180)
@@ -375,7 +392,10 @@ class GameWindowDialog(QDialog):
         self.current.setValidator(validator)
         self.current.setFocus()
         self.current.setAlignment(Qt.AlignCenter)
-        self.current.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 50px")
+        # self.current.setStyleSheet("border-radius: 5px; font-size: 50px")
+        self.current.setWindowFlag(Qt.FramelessWindowHint)
+        self.current.setAttribute(Qt.WA_TranslucentBackground)
+        self.current.setStyleSheet("background:transparent;border-radius: 5px; font-size: 50px;")
         self.current_layout.addWidget(self.current)
         self.current.returnPressed.connect(self.pont_beirva)
 
@@ -398,6 +418,10 @@ class GameWindowDialog(QDialog):
         self.check1.setDisabled(True)
         self.check1.setAlignment(Qt.AlignLeft)
         self.check1.setStyleSheet("font-size: 20px; color: red")
+        self.check1.setWindowFlag(Qt.FramelessWindowHint)
+        self.check1.setAttribute(Qt.WA_TranslucentBackground)
+        self.check1.setStyleSheet("background:transparent;")
+
         cimke1 = QLabel("Kiszálló javaslat:")
         cimke1.setStyleSheet("font-size: 15px")
         cimke2 = QLabel("Kiszálló javaslat:")
@@ -409,6 +433,9 @@ class GameWindowDialog(QDialog):
         self.check2.setDisabled(True)
         self.check2.setAlignment(Qt.AlignRight)
         self.check2.setStyleSheet("font-size: 20px; color: red")
+        self.check2.setWindowFlag(Qt.FramelessWindowHint)
+        self.check2.setAttribute(Qt.WA_TranslucentBackground)
+        self.check2.setStyleSheet("background:transparent;")
         self.check2_layout.addWidget(cimke2)
         self.check2_layout.addWidget(self.check2)
 
@@ -416,7 +443,11 @@ class GameWindowDialog(QDialog):
         # A körök1-et tartalmazo widget hozzáadása a korok1 layout-hoz
         self.kor1 = QTextEdit()
         self.kor1.setAlignment(Qt.AlignCenter)
-        self.kor1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 20px")
+        # self.kor1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 20px")
+        self.kor1.setStyleSheet("border-radius: 5px; font-size: 20px")
+        self.kor1.setWindowFlag(Qt.FramelessWindowHint)
+        self.kor1.setAttribute(Qt.WA_TranslucentBackground)
+        self.kor1.setStyleSheet("background:transparent")
         self.round1_layout.addWidget(self.kor1)
         # A körök2-et tartalmazo widget hozzáadása a korok2 layout-hoz
         self.kor2 = QTextEdit()
@@ -429,7 +460,11 @@ class GameWindowDialog(QDialog):
         # self.kor2.setTextCursor(cursor)
 
         self.kor2.setAlignment(Qt.AlignCenter)
-        self.kor2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 20px")
+        # self.kor2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 20px")
+        self.kor2.setStyleSheet("border-radius: 5px; font-size: 20px")
+        self.kor2.setWindowFlag(Qt.FramelessWindowHint)
+        self.kor2.setAttribute(Qt.WA_TranslucentBackground)
+        self.kor2.setStyleSheet("background:transparent")
         self.round2_layout.addWidget(self.kor2)
 
     def eredmeny_widgetek(self):
@@ -469,12 +504,14 @@ class GameWindowDialog(QDialog):
         # A neveket tartalmazó QLabel-ek létrehozása, hozzáadása a neveket tartalmazó layout-hoz
         self.nev1 = QLabel()
         self.nev1.setAlignment(Qt.AlignCenter)
-        self.nev1.setStyleSheet(
-            "background-color: lightgray; border-radius: 5px; font-size: 35px; font-family: Cuorier New")
+        # self.nev1.setStyleSheet(
+            # "background-color: lightgray; border-radius: 5px; font-size: 35px; font-family: Cuorier New")
+        self.nev1.setStyleSheet("border-radius: 5px; font-size: 35px; font-family: Cuorier New")
         self.nev2 = QLabel()
         self.nev2.setAlignment(Qt.AlignCenter)
-        self.nev2.setStyleSheet(
-            "background-color: lightgray; border-radius: 5px; font-size: 35px; font-family: Cuorier New")
+        # self.nev2.setStyleSheet(
+        #     "background-color: lightgray; border-radius: 5px; font-size: 35px; font-family: Cuorier New")
+        self.nev2.setStyleSheet("border-radius: 5px; font-size: 35px; font-family: Cuorier New")
         self.nevek_layout.addWidget(self.nev1)
         self.nevek_layout.addWidget(self.nev2)
 
@@ -922,7 +959,6 @@ class GameWindowDialog(QDialog):
         # Fő LAYOUT létrehozása, beállítása
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
-        # Legfelső sor (nevek) Widget max magassággal, hozzárendelve egy LAYOUT, amihez hozzáadjuk a neveket
         self.nevek_sor = QWidget()
         self.nevek_sor.setFixedHeight(60)
         self.nevek_layout = QHBoxLayout()

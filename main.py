@@ -1,5 +1,7 @@
 from PySide2.QtWidgets import QMainWindow, QWidget, QApplication, QVBoxLayout, QPushButton, QLabel, QMessageBox
 from PySide2.QtCore import *
+from PySide2.QtGui import QImage, QPainter
+import os, sys
 from menus import create_menus
 from gamesettings2 import GameSettingsDialog
 from gameon import GameWindowDialog
@@ -29,13 +31,31 @@ class AppWindows(QMainWindow):
     def __init__(self):
         super(AppWindows, self).__init__()
         self.setWindowTitle("Darts Scorer powered by Jcigi")
-        self.resize(1100,900)
-        widget = QWidget()
+        self.resize(1000,1000)
+        self.widget = QWidget()
         self.main_layout = QVBoxLayout()
-        widget.setLayout(self.main_layout)
-        self.setCentralWidget(widget)
+        self.widget.setLayout(self.main_layout)
+        self.setCentralWidget(self.widget)
+
+        self.background_image = QImage("images/gdc_logo_uj.png")
+        self.image_rect = QRect()
         # A menus.py definiálja a menüpontokat
         create_menus(self)
+        # self.main_layout.addWidget(QPushButton("hello"))
+
+    def paintEvent(self, e):
+        painter = QPainter()
+        painter.begin(self)
+        self.drawWidget(painter)
+        painter.end()
+
+    def drawWidget(self, painter):
+        rect = self.rect()
+        hatter = self.background_image.scaled(QSize(rect.width(), rect.height()), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.image_rect.setRect(rect.x(), rect.y(), hatter.width(), hatter.height())
+        self.image_rect.moveCenter(rect.center())
+        painter.setOpacity(0.05)
+        painter.drawImage(self.image_rect, QImage(hatter))
 
 
     @Slot()
