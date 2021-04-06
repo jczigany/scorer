@@ -20,14 +20,10 @@ if not db.open():
 class GameSettingsDialog(QDialog):
     def __init__(self):
         super(GameSettingsDialog, self).__init__()
-        # self.setAttribute(Qt.WA_DeleteOnClose)
-        # self.parent = parent
         self.setModal(True)
         self.setWindowTitle("Game settings")
-        # print(QApplication.topLevelWidgets())
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
-        # self.layout.addWidget(self.input_player1_name)
         self.kontener_names = QHBoxLayout()
         self.kontener_buttons = QHBoxLayout()
         self.kontener_szovegek1 = QVBoxLayout()
@@ -125,9 +121,9 @@ class GameSettingsDialog(QDialog):
 
     def alapertekek(self):
         self.input_player1_name.setText("")
-        self.input_player1_name.setPlaceholderText("Player 1 name")
+        self.input_player1_name.setPlaceholderText("Player 1")
         self.input_player2_name.setText("")
-        self.input_player2_name.setPlaceholderText("Player 2 name")
+        self.input_player2_name.setPlaceholderText("Player 2")
         self.gomb_501.setChecked(True)
         self.spin_legs.setValue(3)
         self.spin_sets.setValue(1)

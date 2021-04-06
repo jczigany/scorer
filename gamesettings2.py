@@ -34,14 +34,14 @@ class GameSettingsDialog(QDialog):
 
         self.label_player1 = QLabel("Player 1")
         self.input_player1_name = QLineEdit()
-        self.input_player1_name.setPlaceholderText("Player 1 name")
+        self.input_player1_name.setPlaceholderText("Player 1")
         self.input_player1_name.setFocus()
         self.player1_completer = QCompleter()
         self.input_player1_name.setCompleter(self.player1_completer)
 
         self.label_player2 = QLabel("Player 2")
         self.input_player2_name = QLineEdit()
-        self.input_player2_name.setPlaceholderText("Player 2 name")
+        self.input_player2_name.setPlaceholderText("Player 2")
         self.player2_completer = QCompleter()
         self.input_player2_name.setCompleter(self.player2_completer)
 
@@ -110,12 +110,11 @@ class GameSettingsDialog(QDialog):
         self.spin_sets.setValue(1)
 
     def accept(self):
-        print("OK")
-
         params = []
         m_id = p1_id = p2_id = set = leg = 0
         var = ""
         player1 = self.input_player1_name.text()
+        print(player1, len(player1))
         player2 = self.input_player2_name.text()
         # A MATCH_ID-T AZ AUTOINCREMENTBŐL KELLENE VISSZAKÉRNI ÉS NEM IMPLICIT RANDOMBÓL GENERÁLNI
         m_id = random.randint(10, 1000000)
@@ -131,43 +130,51 @@ class GameSettingsDialog(QDialog):
         else:
             var = "701"
 
-        player1_id_model = QSqlQueryModel()
-        query1 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player1}'", db=db)
-        player1_id_model.setQuery(query1)
-        if player1_id_model.record(0).value(0):
-            p1_id = int(player1_id_model.record(0).value(0))
+        if len(player1) == 0:
+            p1_id = 1
+            player1 = "Player 1"
         else:
-            player_model1 = QSqlTableModel()
-            player_model1.setTable("players")
-            rec_play1 = player_model1.record()
-            rec_play1.remove(0)
-            rec_play1.setValue(0, player1)
-            if player_model1.insertRecord(-1, rec_play1):
-                player_model1.submitAll()
-            else:
-                db.rollback()
+            player1_id_model = QSqlQueryModel()
             query1 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player1}'", db=db)
             player1_id_model.setQuery(query1)
-            p1_id = int(player1_id_model.record(0).value(0))
-
-        player2_id_model = QSqlQueryModel()
-        query2 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player2}'", db=db)
-        player2_id_model.setQuery(query2)
-        if player2_id_model.record(0).value(0):
-            p2_id = int(player2_id_model.record(0).value(0))
-        else:
-            player_model2 = QSqlTableModel()
-            player_model2.setTable("players")
-            rec_play2 = player_model2.record()
-            rec_play2.remove(0)
-            rec_play2.setValue(0, player2)
-            if player_model2.insertRecord(-1, rec_play2):
-                player_model2.submitAll()
+            if player1_id_model.record(0).value(0):
+                p1_id = int(player1_id_model.record(0).value(0))
             else:
-                db.rollback()
+                player_model1 = QSqlTableModel()
+                player_model1.setTable("players")
+                rec_play1 = player_model1.record()
+                rec_play1.remove(0)
+                rec_play1.setValue(0, player1)
+                if player_model1.insertRecord(-1, rec_play1):
+                    player_model1.submitAll()
+                else:
+                    db.rollback()
+                query1 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player1}'", db=db)
+                player1_id_model.setQuery(query1)
+                p1_id = int(player1_id_model.record(0).value(0))
+
+        if len(player2) == 0:
+            p2_id = 2
+            player2 = "Player 2"
+        else:
+            player2_id_model = QSqlQueryModel()
             query2 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player2}'", db=db)
             player2_id_model.setQuery(query2)
-            p2_id = int(player2_id_model.record(0).value(0))
+            if player2_id_model.record(0).value(0):
+                p2_id = int(player2_id_model.record(0).value(0))
+            else:
+                player_model2 = QSqlTableModel()
+                player_model2.setTable("players")
+                rec_play2 = player_model2.record()
+                rec_play2.remove(0)
+                rec_play2.setValue(0, player2)
+                if player_model2.insertRecord(-1, rec_play2):
+                    player_model2.submitAll()
+                else:
+                    db.rollback()
+                query2 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player2}'", db=db)
+                player2_id_model.setQuery(query2)
+                p2_id = int(player2_id_model.record(0).value(0))
 
         # Match paremeterek rögzítése
         now = QDateTime.currentDateTime()
@@ -181,7 +188,7 @@ class GameSettingsDialog(QDialog):
         record.setValue(4, set)
         record.setValue(5, leg)
         record.setValue(6, now)
-        # print(record)
+        print(record)
         if match_model.insertRecord(-1, record):
             match_model.submitAll()
         else:
