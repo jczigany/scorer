@@ -19,7 +19,6 @@ class GameSettingsDialog(QDialog):
         self.parent = parent
         self.setModal(True)
         self.setWindowTitle("Game settings")
-        # db = db
 
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
@@ -27,10 +26,12 @@ class GameSettingsDialog(QDialog):
         self.kontener_buttons = QHBoxLayout()
         self.kontener_szovegek1 = QVBoxLayout()
         self.kontener_sets = QHBoxLayout()
+        self.kontener_handi = QHBoxLayout()
         self.layout.addLayout(self.kontener_names)
         self.layout.addLayout(self.kontener_szovegek1)
         self.layout.addLayout(self.kontener_buttons)
         self.layout.addLayout(self.kontener_sets)
+        self.layout.addLayout(self.kontener_handi)
 
         self.label_player1 = QLabel("Player 1")
         self.input_player1_name = QLineEdit()
@@ -81,6 +82,21 @@ class GameSettingsDialog(QDialog):
         self.kontener_sets.addWidget(QLabel("Number os sets: "))
         self.kontener_sets.addWidget(self.spin_sets)
 
+        self.handi1 = QSpinBox()
+        self.handi1.setValue(0)
+        self.handi1.setMinimum(-100)
+        self.handi1.setMaximum(100)
+
+        self.handi2 = QSpinBox()
+        self.handi2.setValue(0)
+        self.handi2.setMinimum(-100)
+        self.handi2.setMaximum(100)
+
+        self.kontener_handi.addWidget(QLabel("Handicap (1)"))
+        self.kontener_handi.addWidget(self.handi1)
+        self.kontener_handi.addWidget(QLabel("Handicap (2)"))
+        self.kontener_handi.addWidget(self.handi2)
+
         self.buttonbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel | QDialogButtonBox.Reset)
         self.buttonbox.clicked.connect(self.buttonbox_click)
         self.layout.addWidget(self.buttonbox)
@@ -108,10 +124,12 @@ class GameSettingsDialog(QDialog):
         self.gomb_501.setChecked(True)
         self.spin_legs.setValue(3)
         self.spin_sets.setValue(1)
+        self.handi1.setValue(0)
+        self.handi2.setValue(0)
 
     def accept(self):
         params = []
-        m_id = p1_id = p2_id = set = leg = 0
+        m_id = p1_id = p2_id = set = leg = hc1 = hc2 =0
         var = ""
         player1 = self.input_player1_name.text()
         print(player1, len(player1))
@@ -119,8 +137,10 @@ class GameSettingsDialog(QDialog):
         # A MATCH_ID-T AZ AUTOINCREMENTBŐL KELLENE VISSZAKÉRNI ÉS NEM IMPLICIT RANDOMBÓL GENERÁLNI
         m_id = random.randint(10, 1000000)
         # print(m_id)
-        set = self.spin_legs.value()
-        leg = self.spin_sets.value()
+        leg = self.spin_legs.value()
+        set = self.spin_sets.value()
+        hc1 = self.handi1.value()
+        hc2 = self.handi2.value()
         if self.gomb_301.isChecked():
             var = "301"
         elif self.gomb_401.isChecked():
@@ -185,8 +205,8 @@ class GameSettingsDialog(QDialog):
         record.setValue(1, p1_id)
         record.setValue(2, p2_id)
         record.setValue(3, var)
-        record.setValue(4, set)
-        record.setValue(5, leg)
+        record.setValue(4, leg)
+        record.setValue(5, set)
         record.setValue(6, now)
         print(record)
         if match_model.insertRecord(-1, record):
@@ -199,8 +219,10 @@ class GameSettingsDialog(QDialog):
         params.append(p1_id)
         params.append(p2_id)
         params.append(var)
-        params.append(set)
         params.append(leg)
+        params.append(set)
+        params.append(hc1)
+        params.append(hc2)
         self.parent.new_game_window.params = params
         self.parent.new_game_window.refresh()
         super().accept()

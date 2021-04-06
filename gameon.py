@@ -479,15 +479,17 @@ class GameWindowDialog(QDialog):
         self.set1.setAlignment(Qt.AlignRight)
         self.set1.setStyleSheet("font-size: 35px; font-weight: bold")
         self.set1_layout.addWidget(self.set1)
+
         # A Leg és szet felirat külön
         self.leg_cimke = QLabel("Legs")
-        self.leg_cimke.setAlignment(Qt.AlignCenter)
-        self.leg_cimke.setStyleSheet("font-size: 35px")
+        self.leg_cimke.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
+        self.leg_cimke.setStyleSheet("font-size: 33px")
         self.set_cimke = QLabel("Sets")
-        self.set_cimke.setAlignment(Qt.AlignCenter)
-        self.set_cimke.setStyleSheet("font-size: 35px")
+        self.set_cimke.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
+        self.set_cimke.setStyleSheet("font-size: 33px")
         self.legset_layout.addWidget(self.leg_cimke)
         self.legset_layout.addWidget(self.set_cimke)
+
         # Set2, Leg2 megjelenítéséhez Widget, Layout
         self.leg2 = QLabel("0")
         self.leg2.setFixedWidth(200)
@@ -583,13 +585,21 @@ class GameWindowDialog(QDialog):
         self.var180_1 = CustomIntLabel()
         stat1_grid.addWidget(self.var180_1, 5, 1)
         stat1_grid.addWidget(QLabel(), 6, 0)
-        stat1_grid.addWidget(QLabel(), 7, 0)
-        stat1_grid.addWidget(CustomQLabel("Dobás átlag"), 8, 0)
+
+        stat1_grid.addWidget(CustomQLabel("Max kiszálló"), 7, 0)
+        self.maxchceck_1 = CustomIntLabel()
+        stat1_grid.addWidget(self.maxchceck_1, 7, 1)
+        stat1_grid.addWidget(CustomQLabel("Legjobb leg"), 8, 0)
+        self.bestleg_1 = CustomIntLabel()
+        stat1_grid.addWidget(self.bestleg_1, 8, 1)
+
+        stat1_grid.addWidget(QLabel(), 9, 0)
+        stat1_grid.addWidget(CustomQLabel("Dobás átlag"), 10, 0)
         self.aver_1 = CustomFloatLabel()
-        stat1_grid.addWidget(self.aver_1, 8, 1)
-        stat1_grid.addWidget(CustomQLabel("Első 9 nyíl"), 9, 0)
+        stat1_grid.addWidget(self.aver_1, 10, 1)
+        stat1_grid.addWidget(CustomQLabel("Első 9 nyíl"), 11, 0)
         self.first9_1 = CustomFloatLabel()
-        stat1_grid.addWidget(self.first9_1, 9, 1)
+        stat1_grid.addWidget(self.first9_1, 11, 1)
 
     def stat2(self):
         stat2_grid = QGridLayout()
@@ -616,13 +626,33 @@ class GameWindowDialog(QDialog):
         self.var180_2 = CustomIntLabel()
         stat2_grid.addWidget(self.var180_2, 5, 1)
         stat2_grid.addWidget(QLabel(), 6, 0)
-        stat2_grid.addWidget(QLabel(), 7, 0)
-        stat2_grid.addWidget(CustomQLabel("Dobás átlag"), 8, 0)
+
+        stat2_grid.addWidget(CustomQLabel("Max kiszálló"), 7, 0)
+        self.maxchceck_2 = CustomIntLabel()
+        stat2_grid.addWidget(self.maxchceck_2, 7, 1)
+        stat2_grid.addWidget(CustomQLabel("Legjobb leg"), 8, 0)
+        self.bestleg_2 = CustomIntLabel()
+        stat2_grid.addWidget(self.bestleg_2, 8, 1)
+
+        stat2_grid.addWidget(QLabel(), 9, 0)
+        stat2_grid.addWidget(CustomQLabel("Dobás átlag"), 10, 0)
         self.aver_2 = CustomFloatLabel()
-        stat2_grid.addWidget(self.aver_2, 8, 1)
-        stat2_grid.addWidget(CustomQLabel("Első 9 nyíl"), 9, 0)
+        stat2_grid.addWidget(self.aver_2, 10, 1)
+        stat2_grid.addWidget(CustomQLabel("Első 9 nyíl"), 11, 0)
         self.first9_2 = CustomFloatLabel()
-        stat2_grid.addWidget(self.first9_2, 9, 1)
+        stat2_grid.addWidget(self.first9_2, 11, 1)
+
+    def update2_stat(self, player, pont, nyil):
+        if player == self.player1_id:
+            if pont > self.maxchceck_1.get_value():
+                self.maxchceck_1.set_value(pont)
+            if ((self.round_number * 3) - 3 + nyil) < self.bestleg_1.get_value() or self.bestleg_1.get_value() == 0:
+                self.bestleg_1.set_value((self.round_number * 3) - 3 + nyil)
+        else:
+            if pont > self.maxchceck_2.get_value():
+                self.maxchceck_2.set_value(pont)
+            if ((self.round_number * 3) - 3 + nyil) < self.bestleg_2.get_value() or self.bestleg_2.get_value() == 0:
+                self.bestleg_2.set_value((self.round_number * 3) - 3 + nyil)
 
     def update_stat(self, player, pont, nyil):
         if player == self.player1_id:
@@ -766,14 +796,9 @@ class GameWindowDialog(QDialog):
         else:
             db2 = 0
         if (self.setperleg > db1) and (self.setperleg > db2): # mindketten kevesebbet nyertek, mint kellene
-            # Az adott set-ben megnöveljük a set_id-t
+            # Az adott set-ben megnöveljük a leg_id-t
             self.leg_id += 1
         else:
-            # Az egyik megnyerte a Leg-et (Növeljük a Set számát - ha nincs vége - 1-re állítjuk a Leg számát
-            self.won_legs_1 = 0
-            self.won_legs_2 = 0
-            self.leg1.setText(str(self.won_legs_1))
-            self.leg2.setText(str(self.won_legs_2))
             # Ha valamelyik megnyerte a set-et, akkor növeljük a nyert set-ek számát
             if self.setperleg == db1:
                 self.won_sets_1 += 1
@@ -781,22 +806,34 @@ class GameWindowDialog(QDialog):
             else:
                 self.won_sets_2 += 1
                 self.set2.setText(str(self.won_sets_2))
-            # Ha a nyert set-ek közül mindkettő kisebb, mint a beállított ( még kell játszani)
+            # Ha valaki megnyerte a Set-et, de a meccsnek még nincs vége
+
+
             if (self.sets > self.won_sets_1) and ( self.sets > self.won_sets_2):
+                # Átállítjuk, hogy ki kezdte/kezdi a set-et
+                if self.set_kezd == 'player1':
+                    self.set_kezd = 'player2'
+                    self.leg_kezd = 'player1'
+                else:
+                    self.set_kezd = 'player1'
+                    self.leg_kezd = 'player2'
                 self.set_id += 1
                 self.leg_id = 1
+
+                # Leg-számok nullázása
+                self.won_legs_1 = 0
+                self.won_legs_2 = 0
+                self.leg1.setText(str(self.won_legs_1))
+                self.leg2.setText(str(self.won_legs_2))
             else:
                 msg = QMessageBox()
                 msg.setStyleSheet("fonz-size: 20px")
                 msg.setWindowTitle("A játék véget ért!")
                 # Vége a meccsnek, valaki nyert
-                print("GAME OVER!!!!!!!!!!")
                 if self.won_sets_1 > self.won_sets_2:
                     msg.setText('<html style="font-size: 16px;">A játékot nyerte:  </html>' + '<html style="font-size: 20px; color: red">' + self.nev1.text() + '</html')
                 else:
                     msg.setText('<html style="font-size: 16px;">A játékot nyerte:  </html>' + '<html style="font-size: 20px; color: red">' + self.nev2.text() + '</html')
-                # if msg.exec_():
-                #     self.close()
                 msg.exec_()
                 self.end_game()
 
@@ -810,7 +847,7 @@ class GameWindowDialog(QDialog):
     def pont_beirva(self):
         if self.akt_score == 'score_1':
             if (int(self.current.text()) == 0) or (int(self.current.text()) + 1 == int(self.pont1.text())) or (int(self.current.text()) > int(self.pont1.text())):
-                print("Nulla vagy besokalt")
+                # print("Nulla vagy besokalt")
                 self.check_kiszallo(self.player1_id, self.pont1.text())
                 write_score = 0
                 self.update_stat(self.player1_id, write_score, 3)
@@ -819,7 +856,7 @@ class GameWindowDialog(QDialog):
                 if self.leg_kezd == 'player2':
                     self.round_number += 1
             elif (int(self.current.text()) + 1 < int(self.pont1.text())):
-                print("érvényes dobás")
+                # print("érvényes dobás")
                 self.pont1.setText(str(int(self.pont1.text()) - int(self.current.text())))
                 self.check_kiszallo(self.player1_id, self.pont1.text())
                 write_score = int(self.current.text())
@@ -829,19 +866,22 @@ class GameWindowDialog(QDialog):
                 if self.leg_kezd == 'player2':
                     self.round_number += 1
             else:
-                print("megdobta")
+                # print("megdobta")
                 self.pont1.setText("0")
                 write_score = int(self.current.text())
                 nyil = self.hany_kiszallo()
                 self.update_stat(self.player1_id, write_score, nyil)
+                self.update2_stat(self.player1_id, write_score, nyil)
                 self.dobas(self.player1_id, write_score)
                 self.write_leg(self.player1_id)
                 self.won_legs_1 += 1
                 self.leg1.setText(str(self.won_legs_1))
                 self.kor1.clear()
                 self.kor2.clear()
-                self.pont1.setText(self.params[5])
-                self.pont2.setText(self.params[5])
+                self.pont1.setText(str(int(self.params[5]) + self.params[8]))
+                self.pont2.setText(str(int(self.params[5]) + self.params[9]))
+                self.check_kiszallo(self.player1_id, self.pont1.text())
+                self.check_kiszallo(self.player2_id, self.pont2.text())
                 self.round_number = 1
                 self.result_status()
                 if self.leg_kezd == "player1":
@@ -881,15 +921,18 @@ class GameWindowDialog(QDialog):
                 self.pont2.setText("0")
                 write_score = int(self.current.text())
                 nyil = self.hany_kiszallo()
-                self.update_stat(self.player1_id, write_score, nyil)
+                self.update_stat(self.player2_id, write_score, nyil)
+                self.update2_stat(self.player2_id, write_score, nyil)
                 self.dobas(self.player2_id, write_score)
                 self.write_leg(self.player2_id)
                 self.won_legs_2 += 1
                 self.leg2.setText(str(self.won_legs_2))
                 self.kor1.clear()
                 self.kor2.clear()
-                self.pont1.setText(self.params[5])
-                self.pont2.setText(self.params[5])
+                self.pont1.setText(str(int(self.params[5]) + self.params[8]))
+                self.pont2.setText(str(int(self.params[5]) + self.params[9]))
+                self.check_kiszallo(self.player1_id, self.pont1.text())
+                self.check_kiszallo(self.player2_id, self.pont2.text())
                 self.round_number = 1
                 self.result_status()
                 if self.leg_kezd == "player1":
@@ -1092,17 +1135,28 @@ class GameWindowDialog(QDialog):
         # params.append(p1_id)
         # params.append(p2_id)
         # params.append(var)
-        # params.append(set)
         # params.append(leg)
+        # params.append(set)
+        # params.append(hc1)
+        # params.append(hc2)
+        for p in self.params:
+            print(p)
         self.match_id = self.params[2]
         self.player1_id = self.params[3]
         self.player2_id = self.params[4]
         self.nev1.setText(self.params[0])
         self.nev2.setText(self.params[1])
-        self.pont1.setText(self.params[5])
-        self.pont2.setText(self.params[5])
+        self.pont1.setText(str(int(self.params[5]) + self.params[8]))
+        self.pont2.setText(str(int(self.params[5]) + self.params[9]))
         self.setperleg = self.params[6]
         self.sets = self.params[7]
+        if self.sets == 1:
+            self.set1.hide()
+        if self.sets == 1:
+            self.set_cimke.hide()
+        if self.sets == 1:
+            self.set2.hide()
+
 
 
 if __name__ == '__main__':
