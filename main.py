@@ -5,6 +5,7 @@ import os, sys
 from menus import create_menus
 from gamesettings2 import GameSettingsDialog
 from gameon import GameWindowDialog
+from net_settings import NetworkSettingsDialog
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
 from database import create_tables
 
@@ -75,8 +76,9 @@ class AppWindows(QMainWindow):
         self.settings_window.show()
 
     @Slot()
-    def settings_slot(self):
-        new_settings(self)
+    def network_settings(self):
+        self.network_settings_window = NetworkSettingsDialog(self)
+        self.network_settings_window.show()
 
 
 if __name__ == '__main__':

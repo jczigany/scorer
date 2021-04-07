@@ -11,7 +11,7 @@ def create_menus(self):
     exit_action.setShortcut("Ctrl+Q")
     exit_action.triggered.connect(self.exit_app)
     self.file_menu.addAction(exit_action)
-    # Exit action
+    # New Game action
     new_game_action = QAction("Új játék", self)
     new_game_action.setShortcut("Ctrl+N")
     new_game_action.triggered.connect(self.new_game)
@@ -64,5 +64,5 @@ def create_menus(self):
     self.beallitasok_menu = self.menu.addMenu("Beállítások")
     # Paraméterek beállítása action
     beallitasok_action = QAction("Paraméterek beállítása", self)
-    beallitasok_action.triggered.connect(self.settings_slot)
+    beallitasok_action.triggered.connect(self.network_settings)
     self.beallitasok_menu.addAction(beallitasok_action)

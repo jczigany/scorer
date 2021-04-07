@@ -13,3 +13,4 @@ def create_tables(db):
     query.exec_()
     query = QSqlQuery("INSERT INTO 'players' VALUES (2, 'Player 2')", db=db)
     query.exec_()
+

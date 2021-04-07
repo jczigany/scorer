@@ -347,7 +347,7 @@ class GameWindowDialog(QDialog):
         super(GameWindowDialog, self).__init__(parent)
         self.parent = parent
         self.setModal(True)
-        # self.showMaximized()
+        self.showMaximized()
 
         self.params = []
         self.background_image = QImage("images/gdc_logo_uj.png")
