@@ -168,6 +168,7 @@ class NetworkSettingsDialog(QDialog):
 
     def accept(self):
         if self.uj_station:
+            now = QDateTime.currentDateTime()
             network = QSqlTableModel()
             network.setTable("reged_station")
             rec_net = network.record()
@@ -175,6 +176,7 @@ class NetworkSettingsDialog(QDialog):
             rec_net.setValue(0, self.station.text())
             rec_net.setValue(1, self.ip.text())
             rec_net.setValue(2, self.token.text())
+            rec_net.setValue(3, now)
             if network.insertRecord(-1, rec_net):
                 network.submitAll()
             else:
@@ -190,8 +192,9 @@ class NetworkSettingsDialog(QDialog):
             with open('config.ini', 'w') as configfile:
                 config.write(configfile)
             # db update
+            now = QDateTime.currentDateTime().toString("yyyy-MM-ddThh:mm:ss.sss")
             model3 = QSqlQueryModel()
-            query3 = QSqlQuery(f"update reged_station set station_id='{self.station.text()}', station_ip='{self.ip.text()}' where secret_key='{self.token.text()}'", db=db)
+            query3 = QSqlQuery(f"update reged_station set station_id='{self.station.text()}', station_ip='{self.ip.text()}', timestamp='{now}' where secret_key='{self.token.text()}'", db=db)
             model3.setQuery(query3)
             self.valtozott = False
         super().accept()
@@ -206,9 +209,9 @@ class NetworkSettingsDialog(QDialog):
             msg.exec_()
         else:
             super().reject()
-
-if __name__ == '__main__':
-    app = QApplication([])
-    win = NetworkSettingsDialog()
-    win.show()
-    app.exec_()
+#
+# if __name__ == '__main__':
+#     app = QApplication([])
+#     win = NetworkSettingsDialog()
+#     win.show()
+#     app.exec_()
