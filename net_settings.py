@@ -32,8 +32,6 @@ class NetworkSettingsDialog(QDialog):
         adatok = QGridLayout()
         self.layout.addLayout(adatok)
 
-
-
         self.ip = QLineEdit()
         self.token = QLineEdit()
         self.station = QLineEdit()
@@ -137,24 +135,19 @@ class NetworkSettingsDialog(QDialog):
         self.token.setText(secret)
         # todo Ellenőrizni, hogy van-e, és mi van a db-ben
         model2 = QSqlQueryModel()
-        # query = QSqlQuery(f"SELECT * FROM reged_station where station_id = '{station_id}' and station_ip = '{ip_config}'", db=db)
         query = QSqlQuery(f"SELECT * FROM reged_station where secret_key = '{secret}'", db=db)
         model2.setQuery(query)
-        print(model2.record(0), model2.record(0).value(0))
         if model2.record(0).value(0):
             if self.station.text() != model2.record(0).value(1) or self.ip.text() != model2.record(0).value(2) or self.token.text() != model2.record(0).value(3):
                 self.valtozott = True
                 self.rec_id = model2.record(0).value(0)
-                print("változott")
         else:
             self.uj_station = True
-            print("Új állomás")
 
     def change_name(self):
         self.valtozott = True
 
     def buttonbox_click(self, b):
-        print(b.text())
         if b.text() == "Mentés":
             self.accept()
         elif b.text() == "Módosít":

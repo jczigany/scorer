@@ -60,6 +60,13 @@ def create_menus(self):
     # new_kifizetes_action.triggered.connect(self.new_kiadas)
     # self.kiadasok_menu.addAction(new_kifizetes_action)
 
+    # Tournament menü
+    self.tournament_menu = self.menu.addMenu("Torna")
+    # Mérkőzés kiválasztása action
+    select_torna_action = QAction("Mérkőzés választás", self)
+    select_torna_action.triggered.connect(self.select_torna)
+    self.tournament_menu.addAction(select_torna_action)
+
     # Beállítások menü
     self.beallitasok_menu = self.menu.addMenu("Beállítások")
     # Paraméterek beállítása action

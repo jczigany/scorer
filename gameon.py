@@ -12,9 +12,6 @@ from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableMode
 # db.setPassword('cida')
 # formátum ******    num1: [ [], [], ....],      ********
 kiszallo = {
-    # 180: [['T20', 'T20', 'T20'],],
-    # 179: [['T19', 'T19'],],
-    # 178: [['D16'],],
     170: [['T20', 'T20', 'DB'],],
     167: [['T20', 'T19', 'DB'],],
     164: [['T20', 'T18', 'DB'], ['T19', 'T19', 'DB']],
@@ -33,11 +30,11 @@ kiszallo = {
     148: [['T20', 'T20', 'D14'], ['T19', 'T17', 'D20']],
     147: [['T20', 'T17', 'D18'], ['T19', 'T19', 'D18']],
     146: [['T20', 'T18', 'D16'], ['T19', 'T19', 'D16']],
-    145: [['T20', 'T19', 'D14'],],
+    145: [['T20', 'T19', 'D14'], ['T15', 'T20', 'D20']],
     144: [['T20', 'T20', 'D12'],],
     143: [['T20', 'T17', 'D16'], ['T19', 'T18', 'D16']],
     142: [['T20', 'T14', 'D20'], ['T19', 'T19', 'D14']],
-    141: [['T20', 'T19', 'D12'],],
+    141: [['T20', 'T19', 'D12'], ['T17', 'T18', 'D18']],
     140: [['T20', 'T20', 'D20'],],
     139: [['T20', 'T13', 'D20'],],
     138: [['T20', 'T18', 'D12'], ['T19', 'T19', 'D12']],
@@ -227,6 +224,9 @@ class CustomQLineEdit(QLineEdit):
             else:
                 self.setText(str(int(self.parent.pont2.text()) - int(self.text())))
             self.returnPressed.emit()
+        elif event.key() == Qt.Key_Right:
+            self.change_starter()
+            # self.returnPressed.emit()
         elif event.key()  == Qt.Key_Escape:
             pass
         elif (event.modifiers() & Qt.ControlModifier) and event.key() == Qt.Key_B:
@@ -265,8 +265,8 @@ class CustomQLineEdit(QLineEdit):
                 # csak ha a 2. játékosnál vonunk vissza
                 self.parent.round_number -= 1
                 # 4. a kovetkezo_jatekos-bol "kivenni" a játékos váltást
-                self.parent.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 60px")
-                self.parent.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 60px")
+                self.parent.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
+                self.parent.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
                 # 5. dobas táblából törölni a kiválasztott rekordot
                 query1 = QSqlQuery(f"delete from dobas where match_id = {self.parent.match_id} and set_id = {self.parent.set_id} and leg_id = {self.parent.leg_id} and round_number = {kor} and player_id = {jatekos}", db=db)
                 query1.exec_()
@@ -287,14 +287,29 @@ class CustomQLineEdit(QLineEdit):
                 # csak ha a 2. játékosnál vonunk vissza
                 # self.parent.round_number -= 1
                 # 4. a kovetkezo_jatekos-bol "kivenni" a játékos váltást
-                self.parent.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 60px")
-                self.parent.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 60px")
+                self.parent.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
+                self.parent.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
                 # 5. dobas táblából törölni a kiválasztott rekordot
                 query1 = QSqlQuery(
                     f"delete from dobas where match_id = {self.parent.match_id} and set_id = {self.parent.set_id} and leg_id = {self.parent.leg_id} and round_number = {kor} and player_id = {jatekos}",db=db)
                 query1.exec_()
             else:
                 pass
+
+    def change_starter(self):
+        if (int(self.parent.pont1.text()) ==  int(self.parent.params[5]) + self.parent.params[8]) and (int(self.parent.pont2.text()) ==  int(self.parent.params[5]) + self.parent.params[9]) and (self.parent.leg_id == 1) and (self.parent.set_id == 1):
+            if self.parent.akt_score == 'score_1':
+                self.parent.akt_score = 'score_2'
+                self.parent.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
+                self.parent.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
+                self.parent.leg_kezd = "player2"
+                self.parent.set_kezd = "player2"
+            else:
+                self.parent.akt_score = 'score_1'
+                self.parent.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
+                self.parent.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
+                self.parent.leg_kezd = "player1"
+                self.parent.set_kezd = "player1"
 
 class CustomQLabel(QLabel):
     def __init__(self, param = ""):
@@ -395,21 +410,21 @@ class GameWindowDialog(QDialog):
         # self.current.setStyleSheet("border-radius: 5px; font-size: 50px")
         # self.current.setWindowFlag(Qt.FramelessWindowHint)
         # self.current.setAttribute(Qt.WA_TranslucentBackground)
-        self.current.setStyleSheet("border-radius: 5px; font-size: 70px;")
+        self.current.setStyleSheet("border-radius: 5px; font-size: 100px;")
         self.current_layout.addWidget(self.current)
         self.current.returnPressed.connect(self.pont_beirva)
 
     def pontszamok(self):
         self.pont1 = QLabel("501")
         self.pont1.setAlignment(Qt.AlignCenter)
-        self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 95px")
+        self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
         self.score1_layout.addWidget(self.pont1)
         # Set, Leg megjelenítéséhez Widget, Layout
         self.eredmeny_widgetek()
         # # A konkrét pontszámot tartalmazó widget hozzáadása a pont2 widget layout-jához
         self.pont2 = QLabel("501")
         self.pont2.setAlignment(Qt.AlignCenter)
-        self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 95px")
+        self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
         self.score2_layout.addWidget(self.pont2)
 
     def checkouts(self):
@@ -420,7 +435,7 @@ class GameWindowDialog(QDialog):
         # self.check1.setStyleSheet("font-size: 20px; color: red")
         self.check1.setWindowFlag(Qt.FramelessWindowHint)
         self.check1.setAttribute(Qt.WA_TranslucentBackground)
-        self.check1.setStyleSheet("background:transparent;font-size: 23px; color: red")
+        self.check1.setStyleSheet("background:transparent;font-size: 33px; color: red")
 
         cimke1 = QLabel("Kiszálló javaslat:")
         cimke1.setStyleSheet("font-size: 20px")
@@ -435,7 +450,7 @@ class GameWindowDialog(QDialog):
         # self.check2.setStyleSheet("font-size: 20px; color: red")
         self.check2.setWindowFlag(Qt.FramelessWindowHint)
         self.check2.setAttribute(Qt.WA_TranslucentBackground)
-        self.check2.setStyleSheet("background:transparent;font-size: 23px; color: red")
+        self.check2.setStyleSheet("background:transparent;font-size: 33px; color: red")
         self.check2_layout.addWidget(cimke2)
         self.check2_layout.addWidget(self.check2)
 
@@ -754,14 +769,14 @@ class GameWindowDialog(QDialog):
             self.dobas(self.player1_id, write_score)
             self.kor1.append(str(3 * self.round_number) + ":\t" + str(write_score) + "\t" + self.pont1.text())
             self.akt_score = 'score_2'
-            self.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 60px")
-            self.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 60px")
+            self.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
+            self.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
         else:
             self.dobas(self.player2_id, write_score)
             self.kor2.append(str(3 * self.round_number) + ":\t" + str(write_score) + "\t" + self.pont2.text())
             self.akt_score = 'score_1'
-            self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 60px")
-            self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 60px")
+            self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
+            self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
 
     def end_game(self):
         self.current.setDisabled(True)
@@ -795,12 +810,12 @@ class GameWindowDialog(QDialog):
             db2 = int(db2_model.record(0).value(0))
         else:
             db2 = 0
-        if (self.setperleg > db1) and (self.setperleg > db2): # mindketten kevesebbet nyertek, mint kellene
+        if (self.legsperset > db1) and (self.legsperset > db2): # mindketten kevesebbet nyertek, mint kellene
             # Az adott set-ben megnöveljük a leg_id-t
             self.leg_id += 1
         else:
             # Ha valamelyik megnyerte a set-et, akkor növeljük a nyert set-ek számát
-            if self.setperleg == db1:
+            if self.legsperset == db1:
                 self.won_sets_1 += 1
                 self.set1.setText(str(self.won_sets_1))
             else:
@@ -887,13 +902,13 @@ class GameWindowDialog(QDialog):
                 if self.leg_kezd == "player1":
                     self.leg_kezd = "player2"
                     self.akt_score = "score_2"
-                    self.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 75px")
-                    self.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 75px")
+                    self.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
+                    self.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
                 else:
                     self.leg_kezd = "player1"
                     self.akt_score = "score_1"
-                    self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 75px")
-                    self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 75px")
+                    self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
+                    self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
                 self.current.setText("")
                 # if self.leg_kezd == 'player2':
                 #     self.round_number += 1
@@ -938,13 +953,13 @@ class GameWindowDialog(QDialog):
                 if self.leg_kezd == "player1":
                     self.leg_kezd = "player2"
                     self.akt_score = "score_2"
-                    self.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 75px")
-                    self.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 75px")
+                    self.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
+                    self.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
                 else:
                     self.leg_kezd = "player1"
                     self.akt_score = "score_1"
-                    self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 75px")
-                    self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 75px")
+                    self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
+                    self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
                 self.current.setText("")
 
     def alapertekek(self):
@@ -1013,7 +1028,7 @@ class GameWindowDialog(QDialog):
         # Az checkout sor. Widget max magassággal, hozzárendelve egy LAYOUT,
         self.checkout_sor = QWidget()
         # self.checkout_sor.setFixedHeight(120)
-        self.checkout_sor.setMinimumHeight(180)
+        self.checkout_sor.setMinimumHeight(220)
         self.checkout_layout = QHBoxLayout()
         self.checkout_sor.setLayout(self.checkout_layout)
         # A státusz sor. Widget max magassággal, hozzárendelve egy LAYOUT,
@@ -1067,21 +1082,21 @@ class GameWindowDialog(QDialog):
         self.info_layout.addWidget(self.score2_widget)
         # a CHEKOUT1 megjelenítéséhez Widget, layout
         self.check1_widget = QWidget()
-        self.check1_widget.setFixedHeight(145)
+        self.check1_widget.setFixedHeight(185)
         self.check1_layout = QVBoxLayout()
         self.check1_widget.setLayout(self.check1_layout)
         # A PONT2 Widget hozzáadása a checkout layout-hoz
         self.checkout_layout.addWidget(self.check1_widget, 40)
         # A dobott pont megjelenítéséhez Widget, layout
         self.current_widget = QWidget()
-        self.current_widget.setFixedHeight(180)
+        self.current_widget.setMinimumHeight(210)
         self.current_layout = QVBoxLayout()
         self.current_widget.setLayout(self.current_layout)
         # Az aktuális pont widget hozzáadása a checkout layout-hoz
         self.checkout_layout.addWidget(self.current_widget, 20)
         # a CHEKOUT2 megjelenítéséhez Widget, layout
         self.check2_widget = QWidget()
-        self.check2_widget.setFixedHeight(145)
+        self.check2_widget.setFixedHeight(185)
         self.check2_layout = QVBoxLayout()
         self.check2_widget.setLayout(self.check2_layout)
         # A PONT2 Widget hozzáadása a checkout layout-hoz
@@ -1148,7 +1163,7 @@ class GameWindowDialog(QDialog):
         self.nev2.setText(self.params[1])
         self.pont1.setText(str(int(self.params[5]) + self.params[8]))
         self.pont2.setText(str(int(self.params[5]) + self.params[9]))
-        self.setperleg = self.params[6]
+        self.legsperset = self.params[6]
         self.sets = self.params[7]
         if self.sets == 1:
             self.set1.hide()
