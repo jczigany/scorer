@@ -6,14 +6,7 @@ import socket, configparser, os, secrets
 db = QSqlDatabase.addDatabase('QSQLITE')
 db.setDatabaseName('scorer.db3')
 config = configparser.ConfigParser()
-#Ez nem kell majd, ha a mainwindow-ból hívom meg
-# if not db.open():
-#     QMessageBox.critical(
-#         None,
-#         "App Name - Error!",
-#         "Database Error: %s" % db.lastError().text(),
-#     )
-#     sys.exit(1)
+
 
 def get_ip_address():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

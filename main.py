@@ -6,6 +6,7 @@ from menus import create_menus
 from gamesettings2 import GameSettingsDialog
 from gameon import GameWindowDialog
 from net_settings import NetworkSettingsDialog
+from select_match import SelectMatchWindow
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
 from database import create_tables
 
@@ -79,6 +80,13 @@ class AppWindows(QMainWindow):
     def network_settings(self):
         self.network_settings_window = NetworkSettingsDialog(self)
         self.network_settings_window.show()
+
+    @Slot()
+    def select_torna(self):
+        self.new_game_window = GameWindowDialog(self)
+        self.select_merkozes_window = SelectMatchWindow(self)
+        self.new_game_window.show()
+        self.select_merkozes_window.show()
 
 
 if __name__ == '__main__':
