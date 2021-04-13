@@ -1,4 +1,4 @@
-from PySide2.QtWidgets import QListWidget, QDialogButtonBox, QMessageBox, QDialog, QApplication, QComboBox
+from PySide2.QtWidgets import QListWidget, QDialogButtonBox, QMessageBox, QDialog, QApplication, QComboBox, QVBoxLayout
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlRelationalTableModel, QSqlRelation
 import configparser, os, sys
 
