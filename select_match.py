@@ -47,7 +47,7 @@ class SelectMatchWindow(QDialog):
         torna.setQuery(query)
         if torna.record(0).value(0):
             for i in range(torna.rowCount()):
-                self.tournaments.addItem(torna.record(i).value(1), torna.record(i).value(0))  # a value(0) a torna_id
+                self.tournaments.addItem(torna.record(i).value(1), torna.record(i).value(0)) # a value(0) a torna_id
         else:
             print("Nincs aktív torna")
 
