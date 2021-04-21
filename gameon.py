@@ -240,18 +240,11 @@ class CustomQLineEdit(QLineEdit):
         query = QSqlQuery("select * from dobas order by timestamp desc limit 1")
         rec_model = QSqlQueryModel()
         rec_model.setQuery(query)
-        # print(rec_model.record(0))
         score = int(rec_model.record(0).value(2))
         kor = int(rec_model.record(0).value(1))
         jatekos = int(rec_model.record(0).value(0))
-        # 1.b a match_settings-bol kiszedni a variant-ot az adott match_id alapján
-        query2 = QSqlQuery(f"select variant from match_settings where match_id = {self.parent.match_id}")
-        var_model = QSqlQueryModel()
-        var_model.setQuery(query2)
-        variant = var_model.record(0).value(0)
-        # 2. az akt_score alapján váltani az előző játékosra (akt_score == 'score_1)
         if self.parent.akt_score == 'score_1':
-            if int(self.parent.pont2.text()) != int(variant):
+            if int(self.parent.pont2.text()) != (int(self.parent.variant) + int(self.parent.params[9])):
                 self.parent.akt_score = 'score_2'
                 # 3.a az adott játékos pontszámát megnövelni a dobott ponttal (pont1, pont2)
                 self.parent.pont2.setText(str(int(self.parent.pont2.text()) + score))
@@ -273,7 +266,7 @@ class CustomQLineEdit(QLineEdit):
             else:
                 pass
         else:
-            if int(self.parent.pont1.text()) != int(variant):
+            if int(self.parent.pont1.text()) != (int(self.parent.variant) + int(self.parent.params[8])):
                 self.parent.akt_score = 'score_1'
                 # 3.a az adott játékos pontszámát megnövelni a dobott ponttal (pont1, pont2)
                 self.parent.pont1.setText(str(int(self.parent.pont1.text()) + score))
@@ -358,9 +351,11 @@ class CustomFloatLabel(CustomQLabel):
 
 
 class GameWindowDialog(QDialog):
-    def __init__(self, parent = None):
+    def __init__(self, parent, place="local"):
         super(GameWindowDialog, self).__init__(parent)
         self.parent = parent
+        self.place = place
+        # print(self.place)
         self.setModal(True)
         self.showMaximized()
 
@@ -458,25 +453,13 @@ class GameWindowDialog(QDialog):
         # A körök1-et tartalmazo widget hozzáadása a korok1 layout-hoz
         self.kor1 = QTextEdit()
         self.kor1.setAlignment(Qt.AlignCenter)
-        # self.kor1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 20px")
-        # self.kor1.setStyleSheet("border-radius: 5px; font-size: 20px")
         self.kor1.setWindowFlag(Qt.FramelessWindowHint)
         self.kor1.setAttribute(Qt.WA_TranslucentBackground)
         self.kor1.setStyleSheet("background:transparent;border-radius: 5px; font-size: 22px")
         self.round1_layout.addWidget(self.kor1)
         # A körök2-et tartalmazo widget hozzáadása a korok2 layout-hoz
         self.kor2 = QTextEdit()
-
-        # cursor = self.kor2.textCursor()
-        # cursor.movePosition(QTextCursor.End)
-        # cursor.select(QTextCursor.LineUnderCursor)
-        # cursor.removeSelectedText()
-        # cursor.deletePreviousChar()
-        # self.kor2.setTextCursor(cursor)
-
         self.kor2.setAlignment(Qt.AlignCenter)
-        # self.kor2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 20px")
-        # self.kor2.setStyleSheet("border-radius: 5px; font-size: 20px")
         self.kor2.setWindowFlag(Qt.FramelessWindowHint)
         self.kor2.setAttribute(Qt.WA_TranslucentBackground)
         self.kor2.setStyleSheet("background:transparent;border-radius: 5px; font-size: 22px")
@@ -521,13 +504,9 @@ class GameWindowDialog(QDialog):
         # A neveket tartalmazó QLabel-ek létrehozása, hozzáadása a neveket tartalmazó layout-hoz
         self.nev1 = QLabel()
         self.nev1.setAlignment(Qt.AlignLeft | Qt.AlignTop)
-        # self.nev1.setStyleSheet(
-            # "background-color: lightgray; border-radius: 5px; font-size: 35px; font-family: Cuorier New")
         self.nev1.setStyleSheet("border-radius: 5px; font-size: 50px; font-family: Cuorier New; font-weight: bold")
         self.nev2 = QLabel()
         self.nev2.setAlignment(Qt.AlignRight | Qt.AlignTop)
-        # self.nev2.setStyleSheet(
-        #     "background-color: lightgray; border-radius: 5px; font-size: 35px; font-family: Cuorier New")
         self.nev2.setStyleSheet("border-radius: 5px; font-size: 50px; font-family: Cuorier New; font-weight: bold")
         self.nevek_layout.addWidget(self.nev1)
         self.nevek_layout.addWidget(self.nev2)
@@ -537,13 +516,10 @@ class GameWindowDialog(QDialog):
         kisz = []
         if p in  kiszallo:
             kisz = kiszallo[p]
-            # print("Kiszálló string: ", kisz)
             hossz = len(kisz)   # hány fajta kiszálló van (1-3)
-            # print("Kiszállók száma: ", hossz)
             if jatekos == self.player1_id:  # Az 1-es játékos esetén
                 self.check1.clear()         # Töröljük a kiszálló mezőt
                 if hossz == 1:              # Ha csak 1 fajta kiszálló van
-                    # print("1 kiszálló van")
                     k_string = str(kisz[0][0])
                     for x in range(1,len(kisz[0])):
                         k_string += (" - " + str(kisz[0][x]))
@@ -554,11 +530,9 @@ class GameWindowDialog(QDialog):
                         for x in range(1, len(kisz[i])):
                             k_string += (" - " + str(kisz[i][x]))
                         self.check1.append(k_string)
-                # print(self.check1.text())
             else:
                 self.check2.clear()
                 if hossz == 1:              # Ha csak 1 fajta kiszálló van
-                    # print("1 kiszálló van")
                     k_string = str(kisz[0][0])
                     for x in range(1,len(kisz[0])):
                         k_string += (" - " + str(kisz[0][x]))
@@ -756,15 +730,13 @@ class GameWindowDialog(QDialog):
         record.setValue(1, self.leg_id)
         record.setValue(2, self.set_id)
         record.setValue(3, winner)
-        record.setValue(6, now)
+        record.setValue(4, now)
         if leg_model.insertRecord(-1, record):
             leg_model.submitAll()
-            # dobas_model = None
         else:
             db.rollback()
 
     def kovetkezo_jatekos(self, write_score):
-        # print("következő játékos")
         if self.akt_score == 'score_1':
             self.dobas(self.player1_id, write_score)
             self.kor1.append(str(3 * self.round_number) + ":\t" + str(write_score) + "\t" + self.pont1.text())
@@ -1006,8 +978,6 @@ class GameWindowDialog(QDialog):
         c9 = CustomHelpLabel("CTRL-B: Visszavon")
         c9.setFixedWidth(165)
         self.help_layout.addWidget(c9)
-        # self.space = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        # self.help_layout.addItem(self.space)
         self.help_layout.addStretch(0)
 
     def set_layouts(self):
@@ -1154,8 +1124,8 @@ class GameWindowDialog(QDialog):
         # params.append(set)
         # params.append(hc1)
         # params.append(hc2)
-        for p in self.params:
-            print(p)
+        # for p in self.params:
+        #     print(p)
         self.match_id = self.params[2]
         self.player1_id = self.params[3]
         self.player2_id = self.params[4]
@@ -1163,6 +1133,7 @@ class GameWindowDialog(QDialog):
         self.nev2.setText(self.params[1])
         self.pont1.setText(str(int(self.params[5]) + self.params[8]))
         self.pont2.setText(str(int(self.params[5]) + self.params[9]))
+        self.variant = self.params[5]
         self.legsperset = self.params[6]
         self.sets = self.params[7]
         if self.sets == 1:

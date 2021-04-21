@@ -103,7 +103,7 @@ class GameSettingsDialog(QDialog):
 
     def get_player_name(self):
         player_name_model = QSqlQueryModel()
-        query = QSqlQuery("SELECT player_name  FROM players order by player_name", db=db)
+        query = QSqlQuery("SELECT player_name  FROM players where type='local' and aktiv=1 order by player_name", db=db)
         player_name_model.setQuery(query)
         self.player1_completer.setModel(player_name_model)
         self.player2_completer.setModel(player_name_model)
@@ -155,21 +155,24 @@ class GameSettingsDialog(QDialog):
             player1 = "Player 1"
         else:
             player1_id_model = QSqlQueryModel()
-            query1 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player1}'", db=db)
+            query1 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player1}' and type='local' and aktiv=1", db=db)
             player1_id_model.setQuery(query1)
             if player1_id_model.record(0).value(0):
                 p1_id = int(player1_id_model.record(0).value(0))
             else:
+                # todo beszúrás előtt ellenőritni, hogy egyedi-e. Létezhet versenyen felvitt ugyanolyan név
                 player_model1 = QSqlTableModel()
                 player_model1.setTable("players")
                 rec_play1 = player_model1.record()
                 rec_play1.remove(0)
                 rec_play1.setValue(0, player1)
+                rec_play1.setValue(1, 'local')
+                rec_play1.setValue(2, 1)
                 if player_model1.insertRecord(-1, rec_play1):
                     player_model1.submitAll()
                 else:
                     db.rollback()
-                query1 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player1}'", db=db)
+                query1 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player1}' and type='local' and aktiv=1", db=db)
                 player1_id_model.setQuery(query1)
                 p1_id = int(player1_id_model.record(0).value(0))
 
@@ -178,7 +181,7 @@ class GameSettingsDialog(QDialog):
             player2 = "Player 2"
         else:
             player2_id_model = QSqlQueryModel()
-            query2 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player2}'", db=db)
+            query2 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player2}' and type='local' and aktiv=1", db=db)
             player2_id_model.setQuery(query2)
             if player2_id_model.record(0).value(0):
                 p2_id = int(player2_id_model.record(0).value(0))
@@ -188,11 +191,13 @@ class GameSettingsDialog(QDialog):
                 rec_play2 = player_model2.record()
                 rec_play2.remove(0)
                 rec_play2.setValue(0, player2)
+                rec_play2.setValue(1, 'local')
+                rec_play2.setValue(2, 1)
                 if player_model2.insertRecord(-1, rec_play2):
                     player_model2.submitAll()
                 else:
                     db.rollback()
-                query2 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player2}'", db=db)
+                query2 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player2}' and type='local' and aktiv=1", db=db)
                 player2_id_model.setQuery(query2)
                 p2_id = int(player2_id_model.record(0).value(0))
 

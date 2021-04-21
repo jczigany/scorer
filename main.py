@@ -83,7 +83,7 @@ class AppWindows(QMainWindow):
 
     @Slot()
     def select_torna(self):
-        self.new_game_window = GameWindowDialog(self)
+        self.new_game_window = GameWindowDialog(self, place="network")
         self.select_merkozes_window = SelectMatchWindow(self)
         self.new_game_window.show()
         self.select_merkozes_window.show()
