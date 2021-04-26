@@ -24,6 +24,13 @@ def create_menus(self):
     select_torna_action.triggered.connect(self.select_torna)
     self.tournament_menu.addAction(select_torna_action)
 
+    # Statisztika menü
+    self.stat_menu = self.menu.addMenu("Statisztika")
+    # Mérkőzés visszanézése
+    match_history_action = QAction("Mérkőzés 'visszanézése'", self)
+    match_history_action.triggered.connect(self.match_history)
+    self.stat_menu.addAction(match_history_action)
+
     # Beállítások menü
     self.beallitasok_menu = self.menu.addMenu("Beállítások")
     # Paraméterek beállítása action
@@ -46,11 +53,6 @@ def create_menus_org(self):
 
     # Tournament menü
     self.tournament_menu = self.menu.addMenu("Torna")
-    # Mérkőzés kiválasztása action
-    # select_torna_action = QAction("Mérkőzés választás", self)
-    # select_torna_action.triggered.connect(self.select_torna)
-    # self.tournament_menu.addAction(select_torna_action)
-
     # Torna szervezése action
     organ_torna_action = QAction("Verseny létrehozása", self)
     organ_torna_action.triggered.connect(self.torna_settings)

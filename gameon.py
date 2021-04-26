@@ -190,7 +190,6 @@ if not db.open():
 class CustomQLineEdit(QLineEdit):
     def __init__(self, parent):
         super(CustomQLineEdit, self).__init__(parent)
-        self.signal = Signal()
         self.parent = parent
 
     def keyPressEvent(self, event):
@@ -237,6 +236,7 @@ class CustomQLineEdit(QLineEdit):
     def visszavon(self):
         # 1.a a dobas táblából az utolsó rekordot kiolvasni, \
         # dobás értékét + round_number-t, player_id-t megállapítani (match_id, set_id, leg_id, last)
+        # todo: kiegészíteni: adott match_id, set, leg, player? különben más "tábla" eredményét törölheti
         query = QSqlQuery("select * from dobas order by timestamp desc limit 1")
         rec_model = QSqlQueryModel()
         rec_model.setQuery(query)
@@ -304,6 +304,7 @@ class CustomQLineEdit(QLineEdit):
                 self.parent.leg_kezd = "player1"
                 self.parent.set_kezd = "player1"
 
+
 class CustomQLabel(QLabel):
     def __init__(self, param = ""):
         super(CustomQLabel, self).__init__()
@@ -355,7 +356,6 @@ class GameWindowDialog(QDialog):
         super(GameWindowDialog, self).__init__(parent)
         self.parent = parent
         self.place = place
-        # print(self.place)
         self.setModal(True)
         self.showMaximized()
 
@@ -402,9 +402,6 @@ class GameWindowDialog(QDialog):
         self.current.setValidator(validator)
         self.current.setFocus()
         self.current.setAlignment(Qt.AlignCenter)
-        # self.current.setStyleSheet("border-radius: 5px; font-size: 50px")
-        # self.current.setWindowFlag(Qt.FramelessWindowHint)
-        # self.current.setAttribute(Qt.WA_TranslucentBackground)
         self.current.setStyleSheet("border-radius: 5px; font-size: 100px;")
         self.current_layout.addWidget(self.current)
         self.current.returnPressed.connect(self.pont_beirva)
@@ -427,7 +424,6 @@ class GameWindowDialog(QDialog):
         self.check1 = QTextEdit()
         self.check1.setDisabled(True)
         self.check1.setAlignment(Qt.AlignLeft)
-        # self.check1.setStyleSheet("font-size: 20px; color: red")
         self.check1.setWindowFlag(Qt.FramelessWindowHint)
         self.check1.setAttribute(Qt.WA_TranslucentBackground)
         self.check1.setStyleSheet("background:transparent;font-size: 33px; color: red")
@@ -630,7 +626,7 @@ class GameWindowDialog(QDialog):
         stat2_grid.addWidget(CustomQLabel("Első 9 nyíl"), 11, 0)
         self.first9_2 = CustomFloatLabel()
         stat2_grid.addWidget(self.first9_2, 11, 1)
-
+    # todo: a stat-okat átnézni, ha változik a db rögzítés ( kör helyet hány darab)
     def update2_stat(self, player, pont, nyil):
         if player == self.player1_id:
             if pont > self.maxchceck_1.get_value():
@@ -690,7 +686,7 @@ class GameWindowDialog(QDialog):
                 self.darab9_2 += nyil
                 self.first9_2.set_value((self.sum9_2 / self.darab9_2) * 3)
 
-    def dobas(self, player, score):
+    def dobas(self, player, score, nyil=3):
         """
         Az aktuális,érvényes dobás beszúrása a dobas táblába.
         [player_id(player), round_number, points(score), leg_id, set_id, match_id, timestamp]
@@ -703,7 +699,7 @@ class GameWindowDialog(QDialog):
         dobas_model.setTable("dobas")
         record = dobas_model.record()
         record.setValue(0, player)
-        record.setValue(1, self.round_number)
+        record.setValue(1, (self.round_number * 3) -3 + nyil) # todo: kör helyett darab
         record.setValue(2, score)
         record.setValue(3, self.leg_id)
         record.setValue(4, self.set_id)
@@ -711,7 +707,6 @@ class GameWindowDialog(QDialog):
         record.setValue(6, now)
         if dobas_model.insertRecord(-1, record):
             dobas_model.submitAll()
-            # dobas_model = None
         else:
             db.rollback()
 
@@ -735,17 +730,18 @@ class GameWindowDialog(QDialog):
             leg_model.submitAll()
         else:
             db.rollback()
+        # todo: nem befejettek esetén előzmények törlése
 
-    def kovetkezo_jatekos(self, write_score):
+    def kovetkezo_jatekos(self, write_score, nyil=3):
         if self.akt_score == 'score_1':
-            self.dobas(self.player1_id, write_score)
-            self.kor1.append(str(3 * self.round_number) + ":\t" + str(write_score) + "\t" + self.pont1.text())
+            self.dobas(self.player1_id, write_score, nyil)
+            self.kor1.append(str((3 * self.round_number) -3 + nyil) + ":\t" + str(write_score) + "\t" + self.pont1.text())
             self.akt_score = 'score_2'
             self.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
             self.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
         else:
-            self.dobas(self.player2_id, write_score)
-            self.kor2.append(str(3 * self.round_number) + ":\t" + str(write_score) + "\t" + self.pont2.text())
+            self.dobas(self.player2_id, write_score, nyil)
+            self.kor2.append(str((3 * self.round_number) -3 + nyil) + ":\t" + str(write_score) + "\t" + self.pont2.text())
             self.akt_score = 'score_1'
             self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
             self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
@@ -839,7 +835,7 @@ class GameWindowDialog(QDialog):
                 write_score = 0
                 self.update_stat(self.player1_id, write_score, 3)
                 self.current.setText("")
-                self.kovetkezo_jatekos(write_score)
+                self.kovetkezo_jatekos(write_score, 3)
                 if self.leg_kezd == 'player2':
                     self.round_number += 1
             elif (int(self.current.text()) + 1 < int(self.pont1.text())):
@@ -849,7 +845,7 @@ class GameWindowDialog(QDialog):
                 write_score = int(self.current.text())
                 self.update_stat(self.player1_id, write_score, 3)
                 self.current.setText("")
-                self.kovetkezo_jatekos(write_score)
+                self.kovetkezo_jatekos(write_score, 3)
                 if self.leg_kezd == 'player2':
                     self.round_number += 1
             else:
@@ -859,7 +855,7 @@ class GameWindowDialog(QDialog):
                 nyil = self.hany_kiszallo()
                 self.update_stat(self.player1_id, write_score, nyil)
                 self.update2_stat(self.player1_id, write_score, nyil)
-                self.dobas(self.player1_id, write_score)
+                self.dobas(self.player1_id, write_score, nyil)
                 self.write_leg(self.player1_id)
                 self.won_legs_1 += 1
                 self.leg1.setText(str(self.won_legs_1))
@@ -891,7 +887,7 @@ class GameWindowDialog(QDialog):
                 write_score = 0
                 self.update_stat(self.player2_id, write_score, 3)
                 self.current.setText("")
-                self.kovetkezo_jatekos(write_score)
+                self.kovetkezo_jatekos(write_score, 3)
                 if self.leg_kezd == 'player1':
                     self.round_number += 1
             elif (int(self.current.text()) + 1 < int(self.pont2.text())):
@@ -900,7 +896,7 @@ class GameWindowDialog(QDialog):
                 write_score = int(self.current.text())
                 self.update_stat(self.player2_id, write_score, 3)
                 self.current.setText("")
-                self.kovetkezo_jatekos(write_score)
+                self.kovetkezo_jatekos(write_score, 3)
                 if self.leg_kezd == 'player1':
                     self.round_number += 1
             else:
@@ -910,7 +906,7 @@ class GameWindowDialog(QDialog):
                 nyil = self.hany_kiszallo()
                 self.update_stat(self.player2_id, write_score, nyil)
                 self.update2_stat(self.player2_id, write_score, nyil)
-                self.dobas(self.player2_id, write_score)
+                self.dobas(self.player2_id, write_score, nyil)
                 self.write_leg(self.player2_id)
                 self.won_legs_2 += 1
                 self.leg2.setText(str(self.won_legs_2))
@@ -1142,8 +1138,6 @@ class GameWindowDialog(QDialog):
             self.set_cimke.hide()
         if self.sets == 1:
             self.set2.hide()
-
-
 
 if __name__ == '__main__':
     app = QApplication([])

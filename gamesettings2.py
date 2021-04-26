@@ -209,7 +209,6 @@ class GameSettingsDialog(QDialog):
                 p2_id = int(player2_id_model.record(0).value(0))
 
         # Match paremeterek rögzítése
-        # todo a táblát kiagészíteni a handic. értékekkel
         now = QDateTime.currentDateTime()
         match_model = QSqlTableModel()
         match_model.setTable("match_settings")
@@ -220,7 +219,9 @@ class GameSettingsDialog(QDialog):
         record.setValue(3, var)
         record.setValue(4, leg)
         record.setValue(5, set)
-        record.setValue(6, now)
+        record.setValue(6, hc1)
+        record.setValue(7, hc2)
+        record.setValue(8, now)
         if match_model.insertRecord(-1, record):
             match_model.submitAll()
         else:
