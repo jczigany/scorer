@@ -1,4 +1,4 @@
-from PySide2.QtWidgets import QListWidget, QMessageBox, QDialog, QApplication, QScrollArea, QVBoxLayout, QGridLayout, QWidget
+from PySide2.QtWidgets import QListWidget, QLabel, QDialog, QApplication, QScrollArea, QVBoxLayout, QGridLayout, QWidget
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlRelationalTableModel
 from PySide2.QtGui import QPainter, QPen, QBrush, QColor, QFont
 from PySide2.QtCore import *
@@ -67,24 +67,27 @@ class MatchStatWindow(QDialog):
         self.get_adatok(para)
         self.szumma.change_data(self.adatok)
         for x in reversed(range(self.history_layout.count())):
-            self.history_layout.itemAt(x).widget().setParent(None)
+            self.history_layout.itemAt(x).widget().deleteLater()
         # kiszedjük az adott meccs összes set és leg esetére a dobásokat
+        sor = 0
         for s in range(1, self.adatok[8] + 1):
-            #
-            for l in range(1, self.adatok[7] + 1):
+            # s: a set-ek száma
+            if self.adatok[8] != 1:
+                self.history_layout.addWidget(QLabel("Set: " + str(s)), sor, 0, 1, 2)
+                sor += 1
+            for l in range(1, self.adatok[7][s-1] + 1):
                 sl1_model = QSqlQueryModel()
                 p1_data_list = []
                 p1_data_list.append(self.adatok[4])   # start_score1
                 sl1_query = QSqlQuery(f"select * from dobas where match_id ={self.adatok[6]} and set_id={s} and leg_id={l} and player_id='{self.adatok[0]}'", db=db)
                 sl1_model.setQuery(sl1_query)
                 for i in range(sl1_model.rowCount()):
-                    # Itt a model már tartalmazza a p1 összes dobását az adott leg-ben. Ezt kell majd a widget-en megjeleníteni
-                    # minden leg esetén. Ugyan így a p2 esetére is, és ezeket a widget-eket egymás mellé rakni
+                    # Itt a model már tartalmazza a p1 összes dobását az adott leg-ben.
                     p1_data_row = []
                     p1_data_row.append(sl1_model.record(i).value(1))
                     p1_data_row.append(sl1_model.record(i).value(2))
                     p1_data_list.append(p1_data_row)
-                self.history_layout.addWidget(PlayerLegWidget(self, p1_data_list), l -1, 0, Qt.AlignTop)
+                self.history_layout.addWidget(PlayerLegWidget(self, p1_data_list), sor, 0, Qt.AlignTop)
 
                 sl2_model = QSqlQueryModel()
                 p2_data_list = []
@@ -96,9 +99,11 @@ class MatchStatWindow(QDialog):
                     p2_data_row.append(sl2_model.record(j).value(1))
                     p2_data_row.append(sl2_model.record(j).value(2))
                     p2_data_list.append(p2_data_row)
-                self.history_layout.addWidget(PlayerLegWidget(self, p2_data_list), l -1, 1, Qt.AlignTop)
+                self.history_layout.addWidget(PlayerLegWidget(self, p2_data_list), sor, 1, Qt.AlignTop)
+                sor += 1
 
     def get_adatok(self, para):
+        print(para)
         # self.adatok[0]  : p1_id
         # self.adatok[1]  : name1
         # self.adatok[2]  : p2_id
@@ -109,6 +114,7 @@ class MatchStatWindow(QDialog):
         # self.adatok[7]  : legs
         # self.adatok[8]  : sets
         # self.adatok[9]  : dátum
+
         self.adatok = []
         name1_id = int(para[0])
         self.adatok.append(name1_id)
@@ -128,18 +134,34 @@ class MatchStatWindow(QDialog):
         start_score1 = int(para[2])
         start_score2 = int(para[3])
         match = int(para[7])
+        setek = int(para[5])
         self.adatok.append(start_score1)
         self.adatok.append(start_score2)
         self.adatok.append(match)
-        query = QSqlQuery(f"select max(leg_id) as max_leg, max(set_id) as max_set from matches where match_id={match}", db=db)
-        query.exec_()
-        while query.next():
-            legs = int(query.value(0))
-            sets = int(query.value(1))
+        # Kell a max set-number, ezt beállítani a sets változóba
+        # Ciklussal minden set-ben megnézni a max leg-numbert, és ezeket append-elni a legs[]-hez
+        # Végül leg, set sorrendben append-elni az adatokhoz
+        legs = []
+        sets = 0
+        query2 = QSqlQuery(
+            f"select max(set_id) as max_set from matches where match_id={match}", db=db)
+        query2.exec_()
+        while query2.next():
+            sets = int(query2.value(0))
+
+        for i in range(1, sets + 1):
+            query = QSqlQuery(f"select max(leg_id) as max_leg from matches where match_id={match} and set_id={i}", db=db)
+            query.exec_()
+            while query.next():
+                legs.append(int(query.value(0)))
+                # sets.append(int(query.value(1)))
+
         self.adatok.append(legs)
         self.adatok.append(sets)
+
         datum = para[6][:16]
         self.adatok.append(datum)
+        print(self.adatok)
 
 
 class MatchSumWidget(QWidget):
@@ -161,29 +183,41 @@ class MatchSumWidget(QWidget):
         # Végeredmény
         self.won1 = 0
         self.won2 = 0
+        self.avg1 = self.avg2 = 0
         eredmenyek_model = QSqlQueryModel()
         eredmenyek_query = QSqlQuery(f"select * from matches where match_id={match_id}", db=db)
         eredmenyek_model.setQuery(eredmenyek_query)
-        for i in range(eredmenyek_model.rowCount()):
-            if eredmenyek_model.record(i).value(3) == p1_id:
-                self.won1 += 1
+        for x in range(1, self.data[8] + 1):
+            l1 = l2 = 0
+            for i in range(eredmenyek_model.rowCount()):  # csak set-eket összesítünk
+                if eredmenyek_model.record(i).value(2) == x:
+                    if eredmenyek_model.record(i).value(3) == p1_id:
+                        l1 += 1
+                    else:
+                        l2 += 1
+            # print("Set: ", x, "L1: ", l1, "L2: ", l2)
+            if self.data[8] == 1:
+                self.won1 = l1
+                self.won2 = l2
             else:
-                self.won2 += 1
-        # todo Ez csak akkor jó, ha nincs set-elve semmi
-        # Átlag self.data[7] az összes leg száma
-        # select max(round_number) as maxround, sum(points) as sumpont from dobas where leg_id=1 and set_id=1 and match_id=845604 and player_id=16
+                if l1 > l2:
+                    self.won1 += 1
+                else:
+                    self.won2 += 1
+        # Átlagok
         db1 = db2 = sum1 = sum2 = 0
-        for leg in range(1, self.data[7] + 1):
-            query = QSqlQuery(f"select max(round_number) as maxround, sum(points) as sumpont from dobas where leg_id={leg} and set_id=1 and match_id={match_id} and player_id={p1_id}")
-            query.exec_()
-            while query.next():
-                db1 += query.value(0)
-                sum1 += query.value(1)
-            query2 = QSqlQuery(f"select max(round_number) as maxround, sum(points) as sumpont from dobas where leg_id={leg} and set_id=1 and match_id={match_id} and player_id={p2_id}")
-            query2.exec_()
-            while query2.next():
-                db2 += query2.value(0)
-                sum2 += query2.value(1)
+        for x in range(1, self.data[8] + 1):
+            for leg in range(1, self.data[7][x - 1] + 1):
+                query = QSqlQuery(f"select max(round_number) as maxround, sum(points) as sumpont from dobas where leg_id={leg} and set_id={x} and match_id={match_id} and player_id={p1_id}")
+                query.exec_()
+                while query.next():
+                    db1 += query.value(0)
+                    sum1 += query.value(1)
+                query2 = QSqlQuery(f"select max(round_number) as maxround, sum(points) as sumpont from dobas where leg_id={leg} and set_id={x} and match_id={match_id} and player_id={p2_id}")
+                query2.exec_()
+                while query2.next():
+                    db2 += query2.value(0)
+                    sum2 += query2.value(1)
         self.avg1 = round(sum1 / db1 * 3, 2)
         self.avg2 = round(sum2 / db2 * 3, 2)
 
