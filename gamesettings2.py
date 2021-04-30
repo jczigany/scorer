@@ -1,4 +1,4 @@
-from PySide2.QtWidgets import QMessageBox, QDialog, QDialogButtonBox, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QApplication, QRadioButton, QSpinBox, QCompleter
+from PySide2.QtWidgets import QMessageBox, QDialog, QDialogButtonBox, QLabel, QLineEdit, QCheckBox, QVBoxLayout, QHBoxLayout, QApplication, QRadioButton, QSpinBox, QCompleter
 from PySide2.QtCore import *
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
 import random
@@ -44,6 +44,9 @@ class GameSettingsDialog(QDialog):
         self.gomb_501.setChecked(True)
         self.gomb_701 = QRadioButton("701")
 
+        self.label_bestof = QLabel("Best Of.. (Egyébként First To..)")
+        self.best_of = QCheckBox()
+
         self.spin_legs = QSpinBox()
         self.spin_legs.setValue(3)
         self.spin_legs.setMinimum(1)
@@ -83,6 +86,10 @@ class GameSettingsDialog(QDialog):
         self.kontener_buttons.addWidget(self.gomb_501)
         self.kontener_buttons.addWidget(self.gomb_701)
 
+        self.bestof_layout = QHBoxLayout()
+        self.bestof_layout.addWidget(self.label_bestof)
+        self.bestof_layout.addWidget(self.best_of)
+
         self.kontener_szovegek1 = QVBoxLayout()
         self.kontener_szovegek1.addWidget(QLabel("Leave Player 2 blank for single player"))
         self.kontener_szovegek1.addWidget(QLabel("Variant"))
@@ -102,6 +109,7 @@ class GameSettingsDialog(QDialog):
         self.layout.addLayout(self.kontener_names)
         self.layout.addLayout(self.kontener_szovegek1)
         self.layout.addLayout(self.kontener_buttons)
+        self.layout.addLayout(self.bestof_layout)
         self.layout.addLayout(self.kontener_sets)
         self.layout.addLayout(self.kontener_handi)
         self.layout.addWidget(self.buttonbox)
@@ -127,6 +135,7 @@ class GameSettingsDialog(QDialog):
         self.input_player2_name.setText("")
         self.input_player2_name.setPlaceholderText("Player 2 name")
         self.gomb_501.setChecked(True)
+        self.best_of.setChecked(False)
         self.spin_legs.setValue(3)
         self.spin_sets.setValue(1)
         self.handi1.setValue(0)
@@ -152,6 +161,11 @@ class GameSettingsDialog(QDialog):
             var = "501"
         else:
             var = "701"
+
+        if self.best_of.isChecked():
+            bestof = 1
+        else:
+            bestof = 0
 
         if len(player1) == 0:
             p1_id = 1
@@ -212,6 +226,7 @@ class GameSettingsDialog(QDialog):
         now = QDateTime.currentDateTime()
         match_model = QSqlTableModel()
         match_model.setTable("match_settings")
+        # todo Best Of... nincs db-ben tárolva
         record = match_model.record()
         record.setValue(0, m_id)
         record.setValue(1, p1_id)
@@ -236,6 +251,7 @@ class GameSettingsDialog(QDialog):
         params.append(set)
         params.append(hc1)
         params.append(hc2)
+        params.append(bestof)
         self.parent.new_game_window.params = params
         self.parent.new_game_window.refresh()
         super().accept()
