@@ -6,6 +6,7 @@ from menus import create_menus
 from gamesettings2 import GameSettingsDialog
 from gameon import GameWindowDialog
 from net_settings import NetworkSettingsDialog
+from match_stat import MatchStatWindow
 from select_match import SelectMatchWindow
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
 from database import create_tables
@@ -27,6 +28,7 @@ if not db.open():
     sys.exit(1)
 else:
     create_tables(db)
+    # todo: Ezt ki kell egészíteni minden táblára
 
 
 class AppWindows(QMainWindow):
@@ -43,7 +45,6 @@ class AppWindows(QMainWindow):
         self.image_rect = QRect()
         # A menus.py definiálja a menüpontokat
         create_menus(self)
-        # self.main_layout.addWidget(QPushButton("hello"))
 
     def paintEvent(self, e):
         painter = QPainter()
@@ -65,11 +66,6 @@ class AppWindows(QMainWindow):
         QApplication.quit()
 
     @Slot()
-    def new_member(self):
-        manage_members_window = ManageMembers(self)
-        manage_members_window.show()
-
-    @Slot()
     def new_game(self):
         self.new_game_window = GameWindowDialog(self)
         self.settings_window = GameSettingsDialog(self)
@@ -82,8 +78,13 @@ class AppWindows(QMainWindow):
         self.network_settings_window.show()
 
     @Slot()
+    def match_history(self):
+        self.match_history_window = MatchStatWindow(self)
+        self.match_history_window.show()
+
+    @Slot()
     def select_torna(self):
-        self.new_game_window = GameWindowDialog(self)
+        self.new_game_window = GameWindowDialog(self, place="network")
         self.select_merkozes_window = SelectMatchWindow(self)
         self.new_game_window.show()
         self.select_merkozes_window.show()

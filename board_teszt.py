@@ -31,7 +31,7 @@ cegek = [
     [1028, "Brand Made"]
 ]
 csoportok_szama = 2
-sorok_szama = 4
+sorok_szama = 6
 torna_id = 8888
 variant = "501"
 sets = 1
@@ -44,7 +44,7 @@ class CsoportTabla(QDialog):
         self.setWindowTitle("Drag&Drop CustomWidget-el")
         self.create_widgets()
         self.set_layout()
-        self.resize(1000, 400)
+        # self.resize(1000, 400)
 
     def create_widgets(self):
         self.resztvevok = resztvevokLista()
@@ -83,16 +83,22 @@ class CsoportTabla(QDialog):
     def set_layout(self):
         main_layout = QHBoxLayout()
         groups = QWidget()
+        groups.setFixedWidth((sorok_szama * 50) + 200 )
         widgets_layout = QVBoxLayout()
+        # widgets_layout
         groups.setLayout(widgets_layout)
 
         for n in range(csoportok_szama): # csoportok száma
             locals()['csoport_layout' + str(n)] = QGridLayout() # Létrehozzuk az adott sorszámú csoport layout-ját
+            locals()['csoport_layout' + str(n)].setContentsMargins(0, 0, 0, 0)
+            locals()['csoport_layout' + str(n)].setHorizontalSpacing(0)
+            locals()['csoport_layout' + str(n)].setVerticalSpacing(0)
             widgets_layout.addLayout(locals()['csoport_layout' + str(n)]) # Hozzáadjuk a a layout-ot a widget_layout-hoz
             for i in range(len(self.csoportok[n])):  # len(self.csoportok[n]) : csoporton belüli sorok száma
             # Végigmegyünk a sorokon   :  i: sorok száma, n: csoport száma
                 # a layout 1. oszlopát feltöltjük a tömbben tárolt custom widget-ekkel
                 locals()['csoport_layout' + str(n)].addWidget(self.csoportok[n][i], i + 1, 0)
+                # todo itt ugyanígy kell hozzáadni az eredményösszesítő widgeteket
                 # Itt töltjük fel az eredmény-widget-eket (tombben tárolva, mint a GroupMemberWidget-ek)
                 # eredmenyek[x, y, z] x: csoport, y: oszlop, z: sor
                 for x in range(len(self.csoportok[n])): # Ez lesz az oszlop(max = sorok száma) x: oszlop száma
@@ -117,10 +123,8 @@ class CsoportTabla(QDialog):
 
     def clear_all_record(self):
         print("Rekordok törlése")
-        # model = QSqlQueryModel()
         query = QSqlQuery(f"delete from torna_match where torna_id={torna_id}")
         query.exec_()
-        # model.setQuery(query)
 
     def generate_records(self):
         print("Rekordok generálása")
@@ -204,6 +208,9 @@ class EredmenyWidget(QWidget):
 
     def paintEvent(self, event):
         self.painter.begin(self)
+        pen0 = QPen()
+        pen0.setWidth(0)
+        pen_def = self.painter.pen()
         pen_white = QPen(QColor(255, 255, 255))
         pen_black = QPen(QColor(0, 0, 0))
         pen_blue = QPen(QColor(0, 0, 255))
@@ -213,21 +220,24 @@ class EredmenyWidget(QWidget):
         brush_csak1 = QBrush(QColor(255, 255, 255))
 
         if self._player1_id == self._player2_id:
-            self.painter.setPen(pen_red)
             self.painter.setBrush(brush_black)
-            self.painter.drawRect(0, 0, 50, 50)
+            self.painter.setPen(pen0)
+            self.painter.drawRect(0, 0, 49, 49)
+            self.painter.setPen(pen_red)
             self.painter.drawText(15, 20, str(self._player1_id) + " : " + str(self._player2_id))
             self.painter.drawText(20, 35, "X")
         elif self._player1_id == 0 or self._player2_id == 0:
-            self.painter.setPen(pen_blue)
             self.painter.setBrush(brush_csak1)
-            self.painter.drawRect(0, 0, 50, 50)
+            self.painter.setPen(pen0)
+            self.painter.drawRect(0, 0, 49, 49)
+            self.painter.setPen(pen_blue)
             self.painter.drawText(15, 20, str(self._player1_id) + " : " + str(self._player2_id))
             self.painter.drawText(20, 35, "X")
         else:
-            self.painter.setPen(pen_black)
             self.painter.setBrush(brush_ready)
-            self.painter.drawRect(0, 0, 50, 50)
+            self.painter.setPen(pen0)
+            self.painter.drawRect(0, 0, 49, 49)
+            self.painter.setPen(pen_black)
             self.painter.drawText(15, 20, str(self._player1_id) + " : " + str(self._player2_id))
         self.painter.end()
 
@@ -317,7 +327,12 @@ class GroupMemberWidget(QWidget):
         self.painter.begin(self)
         self.painter.setPen(QPen(QColor("blue")))
         self.painter.setBrush(QBrush(QColor("lightgray")))
-        self.painter.drawRect(0, 0, 200, 50)
+        pen0 = QPen()
+        pen0.setWidth(0)
+        pen = self.painter.pen()
+        self.painter.setPen(pen0)
+        self.painter.drawRect(0, 0, 199, 49)
+        self.painter.setPen(pen)
         self.painter.drawText(20, 35, str(self._csoport_number) + ":" + str(self._csoport_sor) + ":" + self._player_name)
         self.painter.end()
 
