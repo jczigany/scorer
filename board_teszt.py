@@ -31,7 +31,7 @@ cegek = [
     [1028, "Brand Made"]
 ]
 csoportok_szama = 2
-sorok_szama = 6
+sorok_szama = 5
 torna_id = 8888
 variant = "501"
 sets = 1
@@ -76,9 +76,9 @@ class CsoportTabla(QDialog):
 
         # Gombok
         self.generate_button = QPushButton("Generate")
-        self.generate_button.clicked.connect(self.generate_records)
+        self.generate_button.clicked.connect(self.generate_match_records)
         self.clear_button = QPushButton("Clear")
-        self.clear_button.clicked.connect(self.clear_all_record)
+        self.clear_button.clicked.connect(self.clear_all_torna_match)
 
     def set_layout(self):
         main_layout = QHBoxLayout()
@@ -114,19 +114,55 @@ class CsoportTabla(QDialog):
 
         scroll = QScrollArea()
         scroll.setWidget(groups)
-        scroll.setWidgetResizable(True)
+        # scroll.setWidgetResizable(True)
+        scroll.setFixedWidth((sorok_szama * 50) + 220 )
         scroll.setFixedHeight(600)
 
         main_layout.addWidget(scroll)
         main_layout.addLayout(lista_layout)
         self.setLayout(main_layout)
 
-    def clear_all_record(self):
+    def clear_all_torna_match(self):
         print("Rekordok törlése")
         query = QSqlQuery(f"delete from torna_match where torna_id={torna_id}")
         query.exec_()
 
-    def generate_records(self):
+    def write_tables(self):
+        print("táblák kiírása")
+        # print(len(self.csoportok))
+        tabla_rekordok = []
+        for cs in range(len(self.csoportok)):
+            for sor in range(len(self.csoportok[cs])):
+                if self.csoportok[cs][sor]._get_player_id() != 0:
+                    # print("ki kell írni")
+                    tabla_rekord = []
+                    tabla_rekord.append(torna_id)
+                    tabla_rekord.append(self.csoportok[cs][sor]._get_player_id())
+                    tabla_rekord.append(self.csoportok[cs][sor]._get_csoport_number())
+                    tabla_rekord.append(self.csoportok[cs][sor]._get_csoport_sor())
+                    tabla_rekordok.append(tabla_rekord)
+
+        for i in range(len(tabla_rekordok)):
+            print(tabla_rekordok[i])
+
+        insertDataQuery = QSqlQuery()
+        insertDataQuery.prepare(
+            """ 
+            insert into torna_tablak (
+                  torna_id,
+                  player_id,
+                  csoport_number,
+                  csoport_sor
+            )
+            values (?, ?, ?, ?)
+            """
+        )
+        for x in range(len(tabla_rekordok)):
+            for i in range(len(tabla_rekordok[x])):
+                insertDataQuery.addBindValue(tabla_rekordok[x][i])
+            insertDataQuery.exec_()
+
+    def generate_match_records(self):
         print("Rekordok generálása")
         match_rekords = []
         for cs in range(csoportok_szama):
@@ -168,6 +204,8 @@ class CsoportTabla(QDialog):
             for i in range(len(match_rekords[x])):
                 insertDataQuery.addBindValue(match_rekords[x][i])
             insertDataQuery.exec_()
+
+        self.write_tables()
 
 class EredmenyWidget(QWidget):
     def __init__(self, parent=None):
@@ -311,11 +349,17 @@ class GroupMemberWidget(QWidget):
         self._csoport_sor = 0
         self.painter = QPainter()
 
+    def _set_player_id(self, number):
+        self._player_id = number
+    # todo a beállításnál ez legyen használva
     def _set_csoport_number(self, number):
         self._csoport_number = number
 
     def _set_csoport_sor(self, number):
         self._csoport_sor = number
+
+    def _get_player_id(self):
+        return int(self._player_id)
 
     def _get_csoport_number(self):
         return int(self._csoport_number)
