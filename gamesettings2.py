@@ -3,14 +3,14 @@ from PySide2.QtCore import *
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
 import random
 
-# db = QSqlDatabase.addDatabase('QMYSQL')
-# db.setHostName('localhost')
-# db.setDatabaseName('cida')
-# db.setUserName('cida')
-# db.setPassword('cida')
+db = QSqlDatabase.addDatabase('QMYSQL')
+db.setHostName('192.168.68.22')
+db.setDatabaseName('cida')
+db.setUserName('cida')
+db.setPassword('cida')
 
-db = QSqlDatabase.addDatabase('QSQLITE')
-db.setDatabaseName('scorer.db3')
+# db = QSqlDatabase.addDatabase('QSQLITE')
+# db.setDatabaseName('scorer.db3')
 
 
 class GameSettingsDialog(QDialog):

@@ -11,13 +11,13 @@ from select_match import SelectMatchWindow
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
 from database import create_tables
 
-# db = QSqlDatabase.addDatabase('QMYSQL')
-# db.setHostName('localhost')
-# db.setDatabaseName('cida')
-# db.setUserName('cida')
-# db.setPassword('cida')
-db = QSqlDatabase.addDatabase('QSQLITE')
-db.setDatabaseName('scorer.db3')
+db = QSqlDatabase.addDatabase('QMYSQL')
+db.setHostName('192.168.68.22')
+db.setDatabaseName('cida')
+db.setUserName('cida')
+db.setPassword('cida')
+# db = QSqlDatabase.addDatabase('QSQLITE')
+# db.setDatabaseName('scorer.db3')
 
 if not db.open():
     QMessageBox.critical(

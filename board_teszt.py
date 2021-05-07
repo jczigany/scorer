@@ -3,8 +3,15 @@ from PySide2.QtGui import QPainter, QPen, QBrush, QColor, QPixmap, QDrag
 from PySide2.QtCore import Qt, QMimeData, QDataStream, QIODevice, QByteArray
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
 
-db = QSqlDatabase.addDatabase('QSQLITE')
-db.setDatabaseName('scorer.db3')
+db = QSqlDatabase.addDatabase('QMYSQL')
+db.setHostName('192.168.68.22')
+db.setDatabaseName('cida')
+db.setUserName('cida')
+db.setPassword('cida')
+
+
+# db = QSqlDatabase.addDatabase('QSQLITE')
+# db.setDatabaseName('scorer.db3')
 # Ha a progiból indul, nem kell majd
 if not db.open():
     QMessageBox.critical(

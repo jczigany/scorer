@@ -7,24 +7,33 @@ from torna_settings import TornaSettingsDialog
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
 from database import create_tables
 
-# db = QSqlDatabase.addDatabase('QMYSQL')
-# db.setHostName('localhost')
-# db.setDatabaseName('cida')
-# db.setUserName('cida')
-# db.setPassword('cida')
-db = QSqlDatabase.addDatabase('QSQLITE')
-db.setDatabaseName('scorer.db3')
-
-if not db.open():
-    QMessageBox.critical(
-        None,
-        "App Name - Error!",
-        "Database Error: %s" % db.lastError().text(),
-    )
-    sys.exit(1)
-else:
-    create_tables(db)
-
+# db1 = QSqlDatabase.addDatabase('QMYSQL')
+# db1.setHostName('192.168.68.22')
+# db1.setDatabaseName('cida')
+# db1.setUserName('cida')
+# db1.setPassword('cida')
+#
+# db1 = QSqlDatabase.addDatabase('QMYSQL', 'database1')
+# db1.setHostName('192.168.68.22')
+# db1.setDatabaseName('cida')
+# db1.setUserName('cida')
+# db1.setPassword('cida')
+#
+# db2 = QSqlDatabase.addDatabase('QSQLITE', 'database2')
+# db2.setDatabaseName('scorer.db3')
+#
+# db = db1
+#
+# if not db.open():
+#     QMessageBox.critical(
+#         None,
+#         "App Name - Error!",
+#         "Database Error: %s" % db.lastError().text(),
+#     )
+#     sys.exit(1)
+# # else:
+# #     create_tables(db)
+#
 
 class OrgAppWindows(QMainWindow):
     def __init__(self):
@@ -63,7 +72,7 @@ class OrgAppWindows(QMainWindow):
 
     @Slot()
     def torna_settings(self):
-        self.torna_settings_window = TornaSettingsDialog(self)
+        self.torna_settings_window = TornaSettingsDialog(self,4)
         self.torna_settings_window.show()
 
     # @Slot()

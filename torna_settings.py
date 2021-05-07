@@ -4,8 +4,40 @@ from PySide2.QtCore import *
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
 import random
 
-db = QSqlDatabase.addDatabase('QSQLITE')
-db.setDatabaseName('scorer.db3')
+"""
+When a QSqlDataBase is created using the addDatabase() method then the names passed through the connectionName 
+parameter are stored in a dictionary where the key takes that value, if that parameter is not passed 
+then "qt_sql_default_connection" is used causing the creation of the Second database you get a duplicate in the 
+dictionary so Qt issues that warning. A possible solution is to pass it a different name (not tested):
+
+def connectDb(database_name, connection_name):
+    SERVER_NAME = "COMPUTER\\SQLEXPRESS"
+    DATABASE_NAME = database_name
+    connString = (
+        f"DRIVER={{SQL Server}};" f"SERVER={SERVER_NAME};" f"DATABASE={DATABASE_NAME}"
+    )
+    db = QtSql.QSqlDatabase.addDatabase("QSQLITE", connection_name)
+    db.setDatabaseName(connString)
+    if not db.open():
+        print(db.lastError().text())
+    return db
+
+db1 = connectDb("Database1", "connection_1")
+db2 = connectDb("Database2", "connection_2")
+
+"""
+
+db1 = QSqlDatabase.addDatabase('QMYSQL', 'database1')
+db1.setHostName('192.168.68.22')
+db1.setDatabaseName('cida')
+db1.setUserName('cida')
+db1.setPassword('cida')
+
+# db = QSqlDatabase.addDatabase('QSQLITE', 'database2')
+# db.setDatabaseName('scorer.db3')
+
+db = db1
+
 if not db.open():
     QMessageBox.critical(
         None,
@@ -13,6 +45,7 @@ if not db.open():
         "Database Error: %s" % db.lastError().text(),
     )
     sys.exit(1)
+
 
 
 class CustomSpinBox(QSpinBox):
@@ -141,7 +174,7 @@ class TornaSettingsDialog(QDialog):
             self.is_3place.setChecked(False)
             self.leg_num_3place.setValue(4)
         else:
-            model = QSqlTableModel()
+            model = QSqlTableModel(db=db)
             model.setTable("torna_settings")
             model.setFilter(f"torna_id={self.torna_id}")
             model.select()
@@ -264,7 +297,7 @@ class TornaSettingsDialog(QDialog):
                     msg.exec_()
                     van_ilyen_nev = True
             if not van_ilyen_nev:
-                torna_settings_model = QSqlTableModel()
+                torna_settings_model = QSqlTableModel(db=db)  # !!!!!!! Ha több db van, akkor itt konkrétan meg kell adni
                 torna_settings_model.setTable("torna_settings")
                 record = torna_settings_model.record()
 
@@ -282,6 +315,7 @@ class TornaSettingsDialog(QDialog):
                     record.setValue(6, 0)
                 record.setValue(7, self.sets_number.value())
                 record.setValue(8, self.legs_number.value())
+                # print(record.value(2))
                 if self.is_best.isChecked():
                     record.setValue(9, 1)
                 else:
@@ -307,7 +341,7 @@ class TornaSettingsDialog(QDialog):
                 record.setValue(19, self.leg_num_3place.value())
                 record.setValue(20, self.leg_num_final.value())
                 record.setValue(21,2)
-
+                # print(record)
                 if torna_settings_model.insertRecord(-1, record):
                     torna_settings_model.submitAll()
                 else:
@@ -327,7 +361,7 @@ class TornaSettingsDialog(QDialog):
             msg.exec_()
 
     def update_torna_settings(self):
-        torna_settings_model = QSqlTableModel()
+        torna_settings_model = QSqlTableModel(db=db)
         torna_settings_model.setTable("torna_settings")
         record = torna_settings_model.record()
         torna_settings_model.select()
