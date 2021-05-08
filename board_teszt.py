@@ -1,7 +1,9 @@
-from PySide2.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, QGridLayout, QScrollArea, QListWidget, QListWidgetItem, QPushButton, QDialog, QLabel
+from PySide2.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, QGridLayout, QScrollArea, QListWidget, \
+    QListWidgetItem, QPushButton, QDialog, QLabel, QMessageBox
 from PySide2.QtGui import QPainter, QPen, QBrush, QColor, QPixmap, QDrag
 from PySide2.QtCore import Qt, QMimeData, QDataStream, QIODevice, QByteArray
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
+import sys
 
 db = QSqlDatabase.addDatabase('QMYSQL')
 db.setHostName('192.168.68.22')
