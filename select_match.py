@@ -2,10 +2,15 @@ from PySide2.QtWidgets import QListWidget, QDialogButtonBox, QMessageBox, QDialo
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlRelationalTableModel, QSqlRelation
 import configparser, os, sys
 
-db = QSqlDatabase.addDatabase('QSQLITE')
-db.setDatabaseName('scorer.db3')
+# db = QSqlDatabase.addDatabase('QMYSQL')
+# db.setHostName('192.168.68.22')
+# db.setDatabaseName('cida')
+# db.setUserName('cida')
+# db.setPassword('cida')
+# # db = QSqlDatabase.addDatabase('QSQLITE')
+# # db.setDatabaseName('scorer.db3')
 config = configparser.ConfigParser()
-# Ha a progiból indul, nem kell majd
+# # Ha a progiból indul, nem kell majd
 # if not db.open():
 #     QMessageBox.critical(
 #         None,
@@ -52,23 +57,41 @@ class SelectMatchWindow(QDialog):
             print("Nincs aktív torna")
 
     def torna_valasztas(self, i):
-        matches = QSqlRelationalTableModel(db=db)
-        matches.setTable("torna_match")
-        matches.setFilter(f'torna_name = "{self.tournaments.currentText()}" and station_id = "{self.station_id}"')
-        matches.setRelation(0, QSqlRelation("torna_settings", "torna_id", "torna_name"))
-        matches.setRelation(2, QSqlRelation("torna_resztvevok", "player_id", "player_name"))
-        matches.setRelation(3, QSqlRelation("torna_resztvevok", "player_id", "player_name"))
-        matches.setRelation(7, QSqlRelation("reged_station", "id", "station_id"))
-        matches.select()
+        print(self.tournaments.itemData(i))
+        # matches = QSqlRelationalTableModel()
+        # matches.setTable("torna_match")
+        # matches.setFilter(f'a.torna_id=8889 and a.player1_id=c.player_id and a.player2_id=d.player_id and c.torna_id=a.torna_id and d.torna_id=a.torna_id and a.torna_id=b.torna_id')
+        # matches.setFilter(f'torna_name = "{self.tournaments.currentText()}" and torna_resztvevok.torna_id=torna_settings.torna_id and station_id = "{self.station_id}"')
+        # matches.setRelation(0, QSqlRelation("torna_settings", "torna_id", "torna_name"))
+        # matches.setRelation(2, QSqlRelation("torna_resztvevok", "player_id", "player_name"))
+        # matches.setRelation(3, QSqlRelation("torna_resztvevok", "player_id", "player_name"))
+        # matches.setRelation(7, QSqlRelation("reged_station", "id", "station_id"))
+        # matches.select()
+        # print(matches)
+        # self.merkozesek.clear()
+        # for i in  range(matches.rowCount()):
+        #     self.merkozesek.addItem(matches.record(i).value(0) + "\t" +
+        #                             str(matches.record(i).value(1)) + "\t" +
+        #                             matches.record(i).value(2) + "\t" +
+        #                             matches.record(i).value(3) + "\t" +
+        #                             matches.record(i).value(4) + "\t" +
+        #                             str(matches.record(i).value(5))+ "\t" +
+        #                             str(matches.record(i).value(6)))
+        matches = QSqlQueryModel()
+        matches_query = QSqlQuery(f'SELECT a.torna_id, b.torna_name, c.player_name as nev1, \
+        d.player_name as nev2 FROM `torna_match` a, torna_settings b, torna_resztvevok c, \
+        torna_resztvevok d WHERE a.torna_id={self.tournaments.itemData(i)} and a.player1_id=c.player_id and a.player2_id=d.player_id \
+        and c.torna_id=a.torna_id and d.torna_id=a.torna_id and a.torna_id=b.torna_id')
+        matches.setQuery(matches_query)
         self.merkozesek.clear()
-        for i in  range(matches.rowCount()):
-            self.merkozesek.addItem(matches.record(i).value(0) + "\t" +
-                                    str(matches.record(i).value(1)) + "\t" +
-                                    matches.record(i).value(2) + "\t" +
-                                    matches.record(i).value(3) + "\t" +
-                                    matches.record(i).value(4) + "\t" +
-                                    str(matches.record(i).value(5))+ "\t" +
-                                    str(matches.record(i).value(6)))
+        for i in range(matches.rowCount()):
+            self.merkozesek.addItem(matches.record(i).value(1) + "\t") #+
+                                    # str(matches.record(i).value(1)) + "\t" +
+                                    # matches.record(i).value(2) + "\t" +
+                                    # matches.record(i).value(3) + "\t" +
+                                    # matches.record(i).value(4) + "\t" +
+                                    # str(matches.record(i).value(5)) + "\t" +
+                                    # str(matches.record(i).value(6)))
 
     def buttonbox_click(self, b):
         if b.text() == "OK":

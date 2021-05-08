@@ -19,22 +19,10 @@ if not db.open():
     )
     sys.exit(1)
 
-# csoportok_szama = 2
-# sorok_szama = 5
-# torna_id = 8888
-# variant = "501"
-# sets = 1
-# legsperset = 5
-# csoport_tabla = [6, 5, 5, 6]
-
-
-
-torna_id = 8888
+torna_id = 8889
 # csoportok_szama = 0  # todo torna_settings-ből lekérni a 'csoportok_szama' ahol a torna_id a megadott
 # sorok_szama = 0 # todo torna_settings-ből lekérni a 'fo_per_csoport' ahol a torna_id a megadott
-csoport_tabla = [6, 5] # todo ez sem a settings-ben, sem a torna_tablakban nincs rögzítve(a torna_match tartalmazza, ott viszont a csoport száma nincs
-
-
+csoport_tabla = [6, 5, 5, 6] # todo ez sem a settings-ben, sem a torna_tablakban nincs rögzítve(a torna_match tartalmazza, ott viszont a csoport száma nincs
 
 
 class TornaStatuszWindow(QDialog):
@@ -108,10 +96,30 @@ class TornaStatuszWindow(QDialog):
                 self.csoport_eredmeny_matrix.append(self.eredmeny_oszlop)
             self.eredmenyek.append(self.csoport_eredmeny_matrix)
 
+        # SzumWidget-ek
+        self.szum_eredmenyek = []
+        for i in range(self.csoportok_szama):  # 2
+            self.csoport_szum_eredmeny_matrix = []
+            for j in range(5):  # ami egyenlő az oszlopok számával!!!
+                self.szum_eredmeny_oszlop = []
+                for x in range(self.sorok_szama):
+                    self.szum_eredmeny_oszlop.append(SzumWidget(self))
+                    # self.eredmeny_oszlop[x]._set_csoport_number(i)
+                    # self.eredmeny_oszlop[x]._set_csoport_sor(x)
+                    # self.eredmeny_oszlop[x]._set_csoport_oszlop(j)
+                    self.szum_eredmeny_oszlop[x]._set_p_id(self.tablak[i][x])
+                    # self.eredmeny_oszlop[x]._set_p2_id(self.tablak[i][x])
+
+                self.csoport_szum_eredmeny_matrix.append(self.szum_eredmeny_oszlop)
+            self.szum_eredmenyek.append(self.csoport_szum_eredmeny_matrix)
+
+        self.refresh_button = QPushButton("Frissítés")
+        self.refresh_button.clicked.connect(self.update_statusz)
+
     def set_layout(self):
         main_layout = QHBoxLayout()
         groups = QWidget()
-        groups.setFixedWidth((self.sorok_szama * 50) + 200 )
+        groups.setFixedWidth(((self.sorok_szama + 5) * 50) + 200 )
         widgets_layout = QVBoxLayout()
         # widgets_layout
         groups.setLayout(widgets_layout)
@@ -122,27 +130,81 @@ class TornaStatuszWindow(QDialog):
             locals()['csoport_layout' + str(n)].setHorizontalSpacing(0)
             locals()['csoport_layout' + str(n)].setVerticalSpacing(0)
             widgets_layout.addLayout(locals()['csoport_layout' + str(n)]) # Hozzáadjuk a a layout-ot a widget_layout-hoz
+
             for i in range(len(self.csoportok[n])):  # len(self.csoportok[n]) : csoporton belüli sorok száma
             # Végigmegyünk a sorokon   :  i: sorok száma, n: csoport száma
+                # N: HÁNYADIK CSOPORT, I: HÁNYADIK OSZLOP-OT TÖLTJÜK
                 # a layout 1. oszlopát feltöltjük a tömbben tárolt custom widget-ekkel
+                # self.csoportok[n][i] N-EDIK CSOPORT I-DIK SORÁBAN A NÉV
                 locals()['csoport_layout' + str(n)].addWidget(self.csoportok[n][i], i + 1, 0)
-                # todo itt ugyanígy kell hozzáadni az eredményösszesítő widgeteket
-                # Itt töltjük fel az eredmény-widget-eket (tombben tárolva, mint a GroupMemberWidget-ek)
-                # eredmenyek[x, y, z] x: csoport, y: oszlop, z: sor
+                # Itt töltjük fel az eredmény-widget-eket, és a szummákat (tombben tárolva, mint a GroupMemberWidget-ek)
+                # eredmenyek[n, y, i] n: csoport, y: oszlop, i: sor
                 for x in range(len(self.csoportok[n])): # Ez lesz az oszlop(max = sorok száma) x: oszlop száma
                     locals()['csoport_layout' + str(n)].addWidget(self.eredmenyek[n][i][x], i + 1, x + 1)
+                # szum_eredmenyek[x, y, z] x: csoport, y: oszlop, z: sor
+                for y in range(5):  # 5 kockát rakunk ki
+                    locals()['csoport_layout' + str(n)].addWidget(self.szum_eredmenyek[n][y][i], i + 1, 5 + x +y + 1)
 
-            # widgets_layout.addWidget(EredmenyWidget())
             locals()['csoport_layout' + str(n)].addWidget(QLabel("Csoport_" + str(n + 1)), 0, 0)
+
+        lista_layout = QVBoxLayout()
+        lista_layout.addWidget(self.refresh_button)
 
         scroll = QScrollArea()
         scroll.setWidget(groups)
-        # scroll.setWidgetResizable(True)
-        scroll.setFixedWidth((self.sorok_szama * 50) + 220)
-        scroll.setFixedHeight(600)
+        scroll.setFixedWidth(((self.sorok_szama + 5) * 50) + 220)
+        scroll.setFixedHeight(740)
 
         main_layout.addWidget(scroll)
+        main_layout.addLayout(lista_layout)
         self.setLayout(main_layout)
+
+    def update_statusz(self):
+        print("frissít")
+
+class SzumWidget(QWidget):
+    def __init__(self, parent=None):
+        super(SzumWidget, self).__init__(parent)
+        self.setFixedSize(50, 50)
+        self._ertek = 0
+        self._p_id = 0
+        self.painter = QPainter()
+
+    def _set_p_id(self, number):
+        self._p_id = number
+        self.update()
+
+    def _set_ertek(self, number):
+        self._ertek = number
+        self.update()
+
+    def _get_p_id(self):
+        return self._p_id
+
+    def _get_ertek(self):
+        return self._ertek
+
+    def paintEvent(self, event):
+        self.painter.begin(self)
+        pen0 = QPen()
+        pen0.setWidth(0)
+        pen_def = self.painter.pen()
+        pen_white = QPen(QColor(255, 255, 255))
+        pen_black = QPen(QColor(0, 0, 0))
+        pen_blue = QPen(QColor(0, 0, 255))
+        pen_red = QPen(QColor(255, 0, 0))
+        brush_black = QBrush(QColor(0, 0, 0))
+        brush_ready = QBrush(QColor(170, 255, 255))
+        brush_csak1 = QBrush(QColor(255, 255, 255))
+
+        self.painter.setBrush(brush_csak1)
+        self.painter.setPen(pen0)
+        self.painter.drawRect(0, 0, 49, 49)
+        self.painter.setPen(pen_black)
+        self.painter.drawText(25, 30, str(self._p_id))
+
+        self.painter.end()
+
 
 class EredmenyWidget(QWidget):
     def __init__(self, parent=None):
@@ -154,6 +216,8 @@ class EredmenyWidget(QWidget):
         self._csoport_number = 0
         self._csoport_sor = 0
         self._csoport_oszlop = 0
+        self._leg1 = 0
+        self._leg2 = 0
         self.painter = QPainter()
 
     def _set_csoport_number(self, number):
@@ -199,9 +263,9 @@ class EredmenyWidget(QWidget):
             self.painter.setPen(pen0)
             self.painter.drawRect(0, 0, 49, 49)
             self.painter.setPen(pen_red)
-            self.painter.drawText(2, 10, str(self._player1_id))
-            self.painter.drawText(2, 20, str(self._player2_id))
-            self.painter.drawText(20, 35, "X")
+            # self.painter.drawText(2, 10, str(self._player1_id))
+            # self.painter.drawText(2, 20, str(self._player2_id))
+            # self.painter.drawText(20, 35, "X")
         elif self._player1_id == 0 or self._player2_id == 0:
             self.painter.setBrush(brush_csak1)
             self.painter.setPen(pen0)
@@ -209,7 +273,7 @@ class EredmenyWidget(QWidget):
             self.painter.setPen(pen_blue)
             self.painter.drawText(2, 10, str(self._player1_id))
             self.painter.drawText(2, 20, str(self._player2_id))
-            self.painter.drawText(20, 35, "X")
+            self.painter.drawText(25, 30, "X")
         else:
             self.painter.setBrush(brush_ready)
             self.painter.setPen(pen0)

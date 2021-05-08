@@ -39,9 +39,9 @@ cegek = [
     [1027, "Hajdú"],
     [1028, "Brand Made"]
 ]
-csoportok_szama = 2
-sorok_szama = 5
-torna_id = 8888
+csoportok_szama = 4
+sorok_szama = 4
+torna_id = 8889
 variant = "501"
 sets = 1
 legsperset = 5
