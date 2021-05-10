@@ -72,7 +72,7 @@ class OrgAppWindows(QMainWindow):
 
     @Slot()
     def torna_settings(self):
-        self.torna_settings_window = TornaSettingsDialog(self,4)
+        self.torna_settings_window = TornaSettingsDialog(self)
         self.torna_settings_window.show()
 
     # @Slot()

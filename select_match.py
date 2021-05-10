@@ -78,20 +78,22 @@ class SelectMatchWindow(QDialog):
         #                             str(matches.record(i).value(5))+ "\t" +
         #                             str(matches.record(i).value(6)))
         matches = QSqlQueryModel()
-        matches_query = QSqlQuery(f'SELECT a.torna_id, b.torna_name, c.player_name as nev1, \
-        d.player_name as nev2 FROM `torna_match` a, torna_settings b, torna_resztvevok c, \
+        matches_query = QSqlQuery(f'SELECT a.match_id,  b.torna_name, c.player_name as nev1, \
+        d.player_name as nev2, a.variant, a.sets, a.legsperset FROM `torna_match` a, torna_settings b, torna_resztvevok c, \
         torna_resztvevok d WHERE a.torna_id={self.tournaments.itemData(i)} and a.player1_id=c.player_id and a.player2_id=d.player_id \
         and c.torna_id=a.torna_id and d.torna_id=a.torna_id and a.torna_id=b.torna_id')
         matches.setQuery(matches_query)
         self.merkozesek.clear()
         for i in range(matches.rowCount()):
-            self.merkozesek.addItem(matches.record(i).value(1) + "\t") #+
-                                    # str(matches.record(i).value(1)) + "\t" +
-                                    # matches.record(i).value(2) + "\t" +
-                                    # matches.record(i).value(3) + "\t" +
-                                    # matches.record(i).value(4) + "\t" +
-                                    # str(matches.record(i).value(5)) + "\t" +
-                                    # str(matches.record(i).value(6)))
+            self.merkozesek.addItem(str(matches.record(i).value(0)) + "\t" +
+                                    matches.record(i).value(1) + "\t" +
+                                    matches.record(i).value(2) + "\t" +
+                                    matches.record(i).value(3) + "\t" +
+                                    matches.record(i).value(4) + "\t" +
+                                    str(matches.record(i).value(5)) + "\t" +
+                                    str(matches.record(i).value(6)) + "\t" + " legs" #+
+                                    # str(matches.record(i).value(6))
+            )
 
     def buttonbox_click(self, b):
         if b.text() == "OK":
@@ -128,14 +130,15 @@ class SelectMatchWindow(QDialog):
         params = []
         params.append(para[2])
         params.append(para[3])
-        params.append(int(para[1]))
+        params.append(int(para[0]))
         params.append(int(p1_model.record(0).value(0)))
         params.append(int(p2_model.record(0).value(0)))
         params.append(para[4])
         params.append(int(para[6]))
         params.append(int(para[5]))
-        params.append(0)
-        params.append(0)
+        params.append(0)    # hc1
+        params.append(0)    # hc2
+        params.append(0)    #bets_of...
         self.parent.new_game_window.params = params
         self.parent.new_game_window.refresh()
 

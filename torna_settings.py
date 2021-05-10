@@ -178,7 +178,7 @@ class TornaSettingsDialog(QDialog):
             model.setTable("torna_settings")
             model.setFilter(f"torna_id={self.torna_id}")
             model.select()
-            # print(model.record(0))
+            print(model.record(0))
             self.torna_name.setText(model.record(0).value(1))
             self.is_roundrobin.setChecked(model.record(0).value(2))
             self.csoport_number.setValue(model.record(0).value(3))

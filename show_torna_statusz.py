@@ -161,6 +161,56 @@ class TornaStatuszWindow(QDialog):
 
     def update_statusz(self):
         print("frissít")
+        legek = []
+        query = QSqlQuery(f"SELECT matches.*,torna_match.player1_id as p1,torna_match.player2_id as p2 FROM matches,\
+         torna_match WHERE matches.match_id=torna_match.match_id and torna_match.torna_id={torna_id}")
+        query.exec_()
+        while query.next():
+            akt_leg = []
+            akt_leg.append(query.value(0)) # match_id
+            akt_leg.append(query.value(5)) # p1
+            akt_leg.append(query.value(6)) # p2
+            akt_leg.append(query.value(1)) # leg
+            akt_leg.append(query.value(2)) # set
+            akt_leg.append(query.value(3)) # winner
+            legek.append(akt_leg)
+        # Egy listában meg van az adott torna összes lejátszott leg-je
+        print(legek)
+        # Kinullázzuk az eredményeket, mert a lekérdezés az összeset tudja lekérni, nem csak a legfrissebbet!!!
+        for x in range(self.csoportok_szama):
+            for y in range(self.sorok_szama):
+                for z in range(self.sorok_szama):
+                    self.eredmenyek[x][y][z]._set_leg1(0)
+                    self.eredmenyek[x][y][z]._set_leg2(0)
+
+        for k in legek:
+            for x in range(self.csoportok_szama):
+                for y in range(self.sorok_szama):
+                    for z in range(self.sorok_szama):
+                        print("p1: ", self.eredmenyek[x][y][z]._get_p1_id(), "leg1: ", self.eredmenyek[x][y][z]._leg1, "p2: ", self.eredmenyek[x][y][z]._get_p2_id(), "leg2: ", self.eredmenyek[x][y][z]._leg2 )
+                        if self.eredmenyek[x][y][z]._get_p1_id() == k[1] and self.eredmenyek[x][y][z]._get_p2_id() == k[2]:
+                            if self.eredmenyek[x][y][z]._get_p1_id() == k[5]:
+                                self.eredmenyek[x][y][z]._set_leg1(self.eredmenyek[x][y][z]._get_leg1() +1)
+                                print("VÁLTOZOTT ***P1****!!!! p1: ", self.eredmenyek[x][y][z]._get_p1_id(), "leg1: ",
+                                      self.eredmenyek[x][y][z]._leg1, "p2: ", self.eredmenyek[x][y][z]._get_p2_id(),
+                                      "leg2: ", self.eredmenyek[x][y][z]._leg2)
+                                self.eredmenyek[x][y][z].change_leg1_number(self.eredmenyek[x][y][z]._leg1, self.eredmenyek[x][y][z]._leg2)
+                            else:
+                                self.eredmenyek[x][y][z]._set_leg2(self.eredmenyek[x][y][z]._get_leg2() + 1)
+                                # self.eredmenyek[x][y][z].change_leg2_number(self.eredmenyek[x][y][z]._leg2)
+                        # ellenfél szempontjából:
+                        if self.eredmenyek[x][y][z]._get_p1_id() == k[2] and self.eredmenyek[x][y][z]._get_p2_id() == k[1]:
+                            if self.eredmenyek[x][y][z]._get_p1_id() == k[5]:
+                                self.eredmenyek[x][y][z]._set_leg1(self.eredmenyek[x][y][z]._get_leg1() + 1)
+                                print("VÁLTOZOTT ***FORDÍTOTT****!!!! p1: ", self.eredmenyek[x][y][z]._get_p1_id(), "leg1: ",
+                                      self.eredmenyek[x][y][z]._leg1, "p2: ", self.eredmenyek[x][y][z]._get_p2_id(),
+                                      "leg2: ", self.eredmenyek[x][y][z]._leg2)
+                                self.eredmenyek[x][y][z].change_leg1_number(self.eredmenyek[x][y][z]._leg1, self.eredmenyek[x][y][z]._leg2)
+                            else:
+                                self.eredmenyek[x][y][z]._set_leg2(self.eredmenyek[x][y][z]._get_leg2() + 1)
+                                # self.eredmenyek[x][y][z].change_leg2_number(self.eredmenyek[x][y][z]._leg2)
+
+
 
 class SzumWidget(QWidget):
     def __init__(self, parent=None):
@@ -201,7 +251,7 @@ class SzumWidget(QWidget):
         self.painter.setPen(pen0)
         self.painter.drawRect(0, 0, 49, 49)
         self.painter.setPen(pen_black)
-        self.painter.drawText(25, 30, str(self._p_id))
+        self.painter.drawText(25, 30, str(self._ertek))
 
         self.painter.end()
 
@@ -218,7 +268,19 @@ class EredmenyWidget(QWidget):
         self._csoport_oszlop = 0
         self._leg1 = 0
         self._leg2 = 0
+        self._pontszam = 0
         self.painter = QPainter()
+
+    def change_leg1_number(self, t1, t2):
+        print("_leg1: ",self._leg1 ,"leg1: ",t1, "_leg2: ", self._leg2, "leg2: ", t2)
+        # nyert = self.parent.szum_eredmenyek[self._csoport_number][0][self._csoport_sor]
+        self.parent.szum_eredmenyek[self._csoport_number][0][self._csoport_sor]._set_ertek(5)
+        # for oszlop in range(self.parent.sorok_szama):
+        #     self.parent.szum_eredmenyek[self._csoport_number][0][self._csoport_sor]._set_ertek(self.parent.szum_eredmenyek[self._csoport_number][0][self._csoport_sor]._get_ertek() + self.parent.eredmenyek[self._csoport_number][oszlop][self._csoport_sor]._leg1)
+
+
+    def change_leg2_number(self, temp):
+        print("leg2: ", temp)
 
     def _set_csoport_number(self, number):
         self._csoport_number = number
@@ -228,6 +290,9 @@ class EredmenyWidget(QWidget):
         self._csoport_sor = number
         self.update()
 
+    def _set_csoport_oszlop(self, number):
+        self._csoport_oszlop = number
+
     def _set_p1_id(self, number):
         self._player1_id = number
         self.update()
@@ -236,14 +301,32 @@ class EredmenyWidget(QWidget):
         self._player2_id = number
         self.update()
 
+    def _set_pontszam(self, number):
+        self._pontszam = number
+        self.update()
+
+    def _set_leg1(self, number):
+        self._leg1 = number
+        self.update()
+
+    def _set_leg2(self, number):
+        self._leg2 = number
+        self.update()
+
+    def _get_leg1(self):
+        return self._leg1
+
+    def _get_leg2(self):
+        return self._leg2
+
     def _get_p1_id(self):
         return self._player1_id
 
     def _get_p2_id(self):
         return self._player2_id
 
-    def _set_csoport_oszlop(self, number):
-        self._csoport_oszlop = number
+    def _get_pontszam(self):
+        return self._pontszam
 
     def paintEvent(self, event):
         self.painter.begin(self)
@@ -279,8 +362,9 @@ class EredmenyWidget(QWidget):
             self.painter.setPen(pen0)
             self.painter.drawRect(0, 0, 49, 49)
             self.painter.setPen(pen_black)
-            self.painter.drawText(2, 10, str(self._player1_id))
-            self.painter.drawText(2, 20, str(self._player2_id))
+            self.painter.drawText(15, 20, str(self._leg1))
+            self.painter.drawText(23, 20, " : ")
+            self.painter.drawText(30, 20, str(self._leg2))
         self.painter.end()
 
 
@@ -328,7 +412,7 @@ class GroupMemberWidget(QWidget):
         self.painter.setPen(pen0)
         self.painter.drawRect(0, 0, 199, 49)
         self.painter.setPen(pen)
-        self.painter.drawText(20, 35, str(self._csoport_number) + ":" + str(self._csoport_sor) + ":" + self._player_name)
+        self.painter.drawText(20, 35, str(self._player_id) + ":" + self._player_name)
         self.painter.end()
 
 
