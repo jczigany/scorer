@@ -38,6 +38,7 @@ class SelectMatchWindow(QDialog):
         self.merkozesek.setFixedHeight(300)
         self.merkozesek.setFixedWidth(500)
         self.merkozesek.itemDoubleClicked.connect(self.start_game)
+        self.merkozesek.itemSelectionChanged.connect(self.start_game)
         self.layout.addWidget(self.merkozesek)
 
         self.buttonbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -78,10 +79,11 @@ class SelectMatchWindow(QDialog):
         #                             str(matches.record(i).value(5))+ "\t" +
         #                             str(matches.record(i).value(6)))
         matches = QSqlQueryModel()
+        # todo itt még nincs táblához kötve a lekérés
         matches_query = QSqlQuery(f'SELECT a.match_id,  b.torna_name, c.player_name as nev1, \
         d.player_name as nev2, a.variant, a.sets, a.legsperset FROM `torna_match` a, torna_settings b, torna_resztvevok c, \
         torna_resztvevok d WHERE a.torna_id={self.tournaments.itemData(i)} and a.player1_id=c.player_id and a.player2_id=d.player_id \
-        and c.torna_id=a.torna_id and d.torna_id=a.torna_id and a.torna_id=b.torna_id')
+        and c.torna_id=a.torna_id and d.torna_id=a.torna_id and a.torna_id=b.torna_id and a.match_status<2')
         matches.setQuery(matches_query)
         self.merkozesek.clear()
         for i in range(matches.rowCount()):
@@ -91,8 +93,7 @@ class SelectMatchWindow(QDialog):
                                     matches.record(i).value(3) + "\t" +
                                     matches.record(i).value(4) + "\t" +
                                     str(matches.record(i).value(5)) + "\t" +
-                                    str(matches.record(i).value(6)) + "\t" + " legs" #+
-                                    # str(matches.record(i).value(6))
+                                    str(matches.record(i).value(6))
             )
 
     def buttonbox_click(self, b):

@@ -751,6 +751,9 @@ class GameWindowDialog(QDialog):
         self.kor2.setDisabled(True)
         self.check1.clear()
         self.check2.clear()
+        if self.place == "network":
+            query = QSqlQuery(f"update torna_match set match_status=2 where match_id={self.match_id}")
+            query.exec_()
 
     def result_status(self):
         """

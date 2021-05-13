@@ -123,7 +123,6 @@ class TornaStatuszWindow(QDialog):
         groups = QWidget()
         groups.setFixedWidth(((self.sorok_szama + 5) * 50) + 200 )
         widgets_layout = QVBoxLayout()
-        # widgets_layout
         groups.setLayout(widgets_layout)
 
         for n in range(self.csoportok_szama): # csoportok száma
@@ -449,7 +448,7 @@ class GroupMemberWidget(QWidget):
         self.painter.setPen(pen0)
         self.painter.drawRect(0, 0, 199, 49)
         self.painter.setPen(pen)
-        self.painter.drawText(20, 35, str(self._csoport_sor + 1) + "    " + self._player_name)
+        self.painter.drawText(20, 35, str(self._player_id) + "   " + str(self._csoport_sor + 1) + "    " + self._player_name)
         self.painter.end()
 
 
