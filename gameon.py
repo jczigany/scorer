@@ -176,16 +176,16 @@ kiszallo = {
     2: [['D1'],],
 }
 
-db = QSqlDatabase.addDatabase('QSQLITE')
-db.setDatabaseName('scorer.db3')
-
-if not db.open():
-    QMessageBox.critical(
-        None,
-        "App Name - Error!",
-        "Database Error: %s" % db.lastError().text(),
-    )
-    sys.exit(1)
+# db = QSqlDatabase.addDatabase('QSQLITE')
+# db.setDatabaseName('scorer.db3')
+#
+# if not db.open():
+#     QMessageBox.critical(
+#         None,
+#         "App Name - Error!",
+#         "Database Error: %s" % db.lastError().text(),
+#     )
+#     sys.exit(1)
 
 class CustomQLineEdit(QLineEdit):
     def __init__(self, parent):
@@ -765,7 +765,7 @@ class GameWindowDialog(QDialog):
         # db1: az adott mecs, adott set-jében hány leg-et nyert az 1. játékos
         # db2: az adott mecs, adott set-jében hány leg-et nyert az 2. játékos
         db1_model = QSqlQueryModel()
-        query = QSqlQuery(f"SELECT count(*) db FROM matches where match_id = {self.match_id} and set_id = {self.set_id} and winner_id = {self.player1_id}", db=db)
+        query = QSqlQuery(f"SELECT count(*) db FROM matches where match_id = {self.match_id} and set_id = {self.set_id} and winner_id = {self.player1_id}")
         db1_model.setQuery(query)
         if db1_model.record(0).value(0):
             db1 = int(db1_model.record(0).value(0))
@@ -773,8 +773,7 @@ class GameWindowDialog(QDialog):
             db1 = 0
         db2_model = QSqlQueryModel()
         query2 = QSqlQuery(
-            f"SELECT count(*) db FROM matches where match_id = {self.match_id} and set_id = {self.set_id} and winner_id = {self.player2_id}",
-            db=db)
+            f"SELECT count(*) db FROM matches where match_id = {self.match_id} and set_id = {self.set_id} and winner_id = {self.player2_id}")
         db2_model.setQuery(query2)
         if db2_model.record(0).value(0):
             db2 = int(db2_model.record(0).value(0))
@@ -1165,7 +1164,30 @@ class GameWindowDialog(QDialog):
             self.set2.hide()
         else:
             self.bestof = 0
-
+        # print("paraméterek frissítése")
+        query = QSqlQuery(f"select * from matches where match_id={self.match_id}")
+        query.exec_()
+        if query.numRowsAffected():
+            darab1 = darab2 = 0
+            while query.next():
+                if query.value(3) == self.player1_id:
+                    darab1 += 1
+                else:
+                    darab2 += 1
+            self.won_legs_1 = darab1
+            self.leg1.setText(str(self.won_legs_1))
+            self.won_legs_2 = darab2
+            self.leg2.setText(str(self.won_legs_2))
+            if ((darab1 + darab2) % 2 == 0):
+                self.leg_kezd = "player1"
+                self.akt_score = 'score_1'
+                self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
+                self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
+            else:
+                self.leg_kezd = "player2"
+                self.akt_score = 'score_2'
+                self.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
+                self.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
 
 if __name__ == '__main__':
     app = QApplication([])

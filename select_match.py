@@ -132,6 +132,7 @@ class SelectMatchWindow(QDialog):
         params.append(para[2])
         params.append(para[3])
         params.append(int(para[0]))
+        self.match_id = int(para[0])
         params.append(int(p1_model.record(0).value(0)))
         params.append(int(p2_model.record(0).value(0)))
         params.append(para[4])
@@ -144,6 +145,9 @@ class SelectMatchWindow(QDialog):
         self.parent.new_game_window.refresh()
 
     def accept(self):
+        query = QSqlQuery(f"update torna_match set match_status=1 where match_id={self.match_id}")
+        query.exec_()
+        #self.match_id
         super().accept()
 
     def reject(self):
