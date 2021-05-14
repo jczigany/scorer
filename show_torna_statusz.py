@@ -451,8 +451,8 @@ class GroupMemberWidget(QWidget):
         self.painter.drawText(20, 35, str(self._player_id) + "   " + str(self._csoport_sor + 1) + "    " + self._player_name)
         self.painter.end()
 
-
-app = QApplication([])
-win = TornaStatuszWindow()
-win.show()
-app.exec_()
+if __name__ == '__main__':
+    app = QApplication([])
+    win = TornaStatuszWindow()
+    win.show()
+    app.exec_()

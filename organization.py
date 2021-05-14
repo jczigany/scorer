@@ -4,6 +4,8 @@ from PySide2.QtGui import QImage, QPainter
 import os, sys
 from menus import create_menus_org
 from torna_settings import TornaSettingsDialog
+from show_torna_statusz import TornaStatuszWindow
+from board_teszt import CsoportTabla
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
 from database import create_tables
 
@@ -49,7 +51,6 @@ class OrgAppWindows(QMainWindow):
         self.image_rect = QRect()
         # A menus.py definiálja a menüpontokat
         create_menus_org(self)
-        # self.main_layout.addWidget(QPushButton("hello"))
 
     def paintEvent(self, e):
         painter = QPainter()
@@ -75,13 +76,21 @@ class OrgAppWindows(QMainWindow):
         self.torna_settings_window = TornaSettingsDialog(self)
         self.torna_settings_window.show()
 
-    # @Slot()
-    # def select_torna(self):
-    #     self.new_game_window = GameWindowDialog(self)
-    #     self.select_merkozes_window = SelectMatchWindow(self)
-    #     self.new_game_window.show()
-    #     self.select_merkozes_window.show()
+    @Slot()
+    def torna_settings2(self):
+        self.torna_settings_window = TornaSettingsDialog(self, 8889) # todo ezt majd az aktív tornák közül kell kiválasztani
+        self.torna_settings_window.show()
 
+    @Slot()
+    def create_boards(self):
+        self.create_boards_window = CsoportTabla()
+        self.create_boards_window.show()
+
+    @Slot()
+    def torna_status(self):
+        self.torna_status_window = TornaStatuszWindow() # todo ezt majd az aktív tornák közül kell kiválasztani
+        self.torna_status_window.show()
+        # pass
 
 if __name__ == '__main__':
     app = QApplication([])

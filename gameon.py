@@ -1188,6 +1188,15 @@ class GameWindowDialog(QDialog):
                 self.akt_score = 'score_2'
                 self.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
                 self.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
+        else:
+            self.won_legs_1 = 0
+            self.leg1.setText(str(self.won_legs_1))
+            self.won_legs_2 = 0
+            self.leg2.setText(str(self.won_legs_2))
+            self.leg_kezd = "player1"
+            self.akt_score = 'score_1'
+            self.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
+            self.pont2.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
 
 if __name__ == '__main__':
     app = QApplication([])

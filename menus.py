@@ -57,3 +57,15 @@ def create_menus_org(self):
     organ_torna_action = QAction("Verseny létrehozása", self)
     organ_torna_action.triggered.connect(self.torna_settings)
     self.tournament_menu.addAction(organ_torna_action)
+    # Torna módosítás action
+    modify_torna_action = QAction("Verseny módosítása", self)
+    modify_torna_action.triggered.connect(self.torna_settings2)
+    self.tournament_menu.addAction(modify_torna_action)
+    # Torna táblák összerakása action
+    create_boards_action = QAction("Tornatáblák létrehozása", self)
+    create_boards_action.triggered.connect(self.create_boards)
+    self.tournament_menu.addAction(create_boards_action)
+    # Torna státusza action
+    status_torna_action = QAction("Verseny állása", self)
+    status_torna_action.triggered.connect(self.torna_status)
+    self.tournament_menu.addAction(status_torna_action)

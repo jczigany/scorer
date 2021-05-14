@@ -87,7 +87,7 @@ class CsoportTabla(QDialog):
         self.generate_button = QPushButton("Generate")
         self.generate_button.clicked.connect(self.generate_match_records)
         self.clear_button = QPushButton("Clear")
-        self.clear_button.clicked.connect(self.clear_all_torna_match)
+        # self.clear_button.clicked.connect(self.clear_all_torna_match) # todo visszarakni, de ez mindent töröl!!!!
 
     def set_layout(self):
         main_layout = QHBoxLayout()
@@ -137,13 +137,10 @@ class CsoportTabla(QDialog):
         query.exec_()
 
     def write_tables(self):
-        print("táblák kiírása")
-        # print(len(self.csoportok))
         tabla_rekordok = []
         for cs in range(len(self.csoportok)):
             for sor in range(len(self.csoportok[cs])):
                 if self.csoportok[cs][sor]._get_player_id() != 0:
-                    # print("ki kell írni")
                     tabla_rekord = []
                     tabla_rekord.append(torna_id)
                     tabla_rekord.append(self.csoportok[cs][sor]._get_player_id())
@@ -151,8 +148,8 @@ class CsoportTabla(QDialog):
                     tabla_rekord.append(self.csoportok[cs][sor]._get_csoport_sor())
                     tabla_rekordok.append(tabla_rekord)
 
-        for i in range(len(tabla_rekordok)):
-            print(tabla_rekordok[i])
+        # for i in range(len(tabla_rekordok)):
+        #     print(tabla_rekordok[i])
 
         insertDataQuery = QSqlQuery()
         insertDataQuery.prepare(
@@ -172,14 +169,12 @@ class CsoportTabla(QDialog):
             insertDataQuery.exec_()
 
     def generate_match_records(self):
-        print("Rekordok generálása")
         match_rekords = []
         for cs in range(csoportok_szama):
             for sor in range(sorok_szama):
                 for oszlop in range(sor + 1, sorok_szama):
-                    # print(self.eredmenyek[cs][sor][oszlop]._get_p1_id(), ":", self.eredmenyek[cs][sor][oszlop]._get_p2_id())
                     if self.eredmenyek[cs][sor][oszlop]._get_p1_id() != 0 and self.eredmenyek[cs][sor][oszlop]._get_p2_id() != 0:
-                        match_id = (10000 * torna_id) + (100 * int(self.eredmenyek[cs][sor][oszlop]._get_p1_id())) + int(self.eredmenyek[cs][sor][oszlop]._get_p2_id()) # todo generálni kell az adatok alapján
+                        match_id = (10000 * torna_id) + (100 * int(self.eredmenyek[cs][sor][oszlop]._get_p1_id())) + int(self.eredmenyek[cs][sor][oszlop]._get_p2_id())
                         match_rekord = []
                         match_rekord.append(torna_id)
                         match_rekord.append(match_id)
@@ -441,7 +436,8 @@ class GroupMemberWidget(QWidget):
                 self.parent.eredmenyek[self._csoport_number][i][self._csoport_sor]._set_p2_id(0)
             self.update()
 
-app = QApplication([])
-win = CsoportTabla()
-win.show()
-app.exec_()
+if __name__ == '__main__':
+    app = QApplication([])
+    win = CsoportTabla()
+    win.show()
+    app.exec_()
