@@ -82,6 +82,10 @@ class OrgAppWindows(QMainWindow):
         self.torna_settings_window.show()
 
     @Slot()
+    def create_players(self):
+        pass
+
+    @Slot()
     def create_boards(self):
         self.create_boards_window = CsoportTabla()
         self.create_boards_window.show()

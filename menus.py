@@ -61,6 +61,10 @@ def create_menus_org(self):
     modify_torna_action = QAction("Verseny módosítása", self)
     modify_torna_action.triggered.connect(self.torna_settings2)
     self.tournament_menu.addAction(modify_torna_action)
+    # Torna résztvevők action
+    create_tornaplayers_action = QAction("A torna résztvevői", self)
+    create_tornaplayers_action.triggered.connect(self.create_players)
+    self.tournament_menu.addAction(create_tornaplayers_action)
     # Torna táblák összerakása action
     create_boards_action = QAction("Tornatáblák létrehozása", self)
     create_boards_action.triggered.connect(self.create_boards)
