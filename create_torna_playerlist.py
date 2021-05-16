@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QListWidget, QListWidgetItem, QDialogButtonBox, QMessageBox, QDialog, \
-    QApplication, QComboBox, QVBoxLayout, QHBoxLayout, QPushButton
+    QApplication, QComboBox, QVBoxLayout, QHBoxLayout, QPushButton, QInputDialog
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlRelationalTableModel, QSqlRelation
 from PySide2.QtCore import *
 import configparser, os, sys
@@ -28,7 +28,7 @@ class SelectPlayersWindow(QDialog):
         self.parent = parent
         self.setModal(True)
         self.setWindowTitle("Torna résztvevők")
-        self.resize(800, 600)
+        self.resize(520, 600)
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.read_config()
@@ -38,6 +38,7 @@ class SelectPlayersWindow(QDialog):
         self.nevek_layout = QHBoxLayout()
         self.layout.addLayout(self.nevek_layout)
         self.show_saved_players()
+        self.show_torna_players()
 
         self.gomb_nev_layout = QVBoxLayout()
         self.nevek_layout.addLayout(self.gomb_nev_layout)
@@ -56,7 +57,7 @@ class SelectPlayersWindow(QDialog):
 
     def load_torna(self):
         torna = QSqlQueryModel()
-        query = QSqlQuery("select * from torna_settings where aktiv=1")
+        query = QSqlQuery("select * from torna_settings where aktiv=2")
         torna.setQuery(query)
         if torna.record(0).value(0):
             for i in range(torna.rowCount()):
@@ -73,6 +74,15 @@ class SelectPlayersWindow(QDialog):
         self.load_saved_players()
         self.nevek_layout.addWidget(self.saved_players)
 
+    def show_torna_players(self):
+        self.torna_players = QListWidget()
+        self.torna_players.setFixedHeight(500)
+        self.torna_players.setFixedWidth(150)
+        self.torna_players.setSortingEnabled(True)
+        self.torna_players.itemDoubleClicked.connect(self.add_resztvevo)
+        self.load_torna_players()
+        self.nevek_layout.addWidget(self.torna_players)
+
     def load_saved_players(self):
         players = QSqlQueryModel()
         players_query = QSqlQuery("select * from players where aktiv=1")
@@ -83,11 +93,32 @@ class SelectPlayersWindow(QDialog):
             item.setData(Qt.UserRole, players.record(i).value(0))
             self.saved_players.addItem(item)
 
+    def load_torna_players(self):
+        players = QSqlQueryModel()
+        players_query = QSqlQuery("select * from torna_resztvevok where 1 group by player_id, player_name")
+        players.setQuery(players_query)
+        self.torna_players.clear()
+        for i in range(players.rowCount()):
+            item = QListWidgetItem(players.record(i).value(1))
+            item.setData(Qt.UserRole, players.record(i).value(0))
+            self.torna_players.addItem(item)
+
     def add_resztvevo(self, item):
-        self.current_players.addItem(item.text())
+        new_item = QListWidgetItem(item)
+        new_item.setData(Qt.UserRole, item.data(Qt.UserRole))
+        self.current_players.addItem(new_item)
+        query = QSqlQuery(
+            f"insert into torna_resztvevok (player_id, player_name, torna_id) values ({new_item.data(Qt.UserRole)}, '{new_item.text()}', {self.torna_id})")
+        query.exec_()
 
     def show_current_players(self):
+        query = QSqlQuery("select max(player_id) from torna_resztvevok")
+        query.exec_()
+        while query.next():
+            self.first_new_id = int(query.value(0)) + 1
+        print(self.first_new_id)
         self.add_new = QPushButton("Új")
+        self.add_new.clicked.connect(self.uj_ember)
         self.current_players = QListWidget()
         self.current_players.setFixedHeight(470)
         self.current_players.setFixedWidth(150)
@@ -96,13 +127,28 @@ class SelectPlayersWindow(QDialog):
         self.current_players.itemDoubleClicked.connect(self.remove_resztvevo)
         self.gomb_nev_layout.addWidget(self.current_players)
 
+    def uj_ember(self):
+        ujember, ok = QInputDialog.getText(self, "Új versenyző",
+                                           '<html style="font-size: 15px;">Írd be a versenyző nevét!</html>')
+        if ok and len(ujember):
+            item = QListWidgetItem(ujember)
+            item.setData(Qt.UserRole, self.first_new_id)
+            self.current_players.addItem(item)
+            self.first_new_id += 1
+
+            query = QSqlQuery(f"insert into torna_resztvevok (player_id, player_name, torna_id) values ({item.data(Qt.UserRole)}, '{item.text()}', {self.torna_id})")
+            query.exec_()
+
     def remove_resztvevo(self, item):
         self.current_players.takeItem(self.current_players.row(self.current_players.selectedItems()[0]))
+        # print(item.data(Qt.UserRole), item.text())
+        query = QSqlQuery(f"delete from torna_resztvevok where player_id={item.data(Qt.UserRole)} and torna_id={self.torna_id}")
+        query.exec_()
 
     def torna_valasztas(self, i):
-        print(self.tournaments.itemData(i))
+        self.torna_id = self.tournaments.itemData(i)
         players = QSqlQueryModel()
-        players_query = QSqlQuery(f"select * from torna_resztvevok where torna_id={self.tournaments.itemData(i)}")
+        players_query = QSqlQuery(f"select * from torna_resztvevok where torna_id={self.torna_id}")
         players.setQuery(players_query)
         self.current_players.clear()
         for i in range(players.rowCount()):
@@ -116,6 +162,13 @@ class SelectPlayersWindow(QDialog):
         elif b.text() == "Cancel":
             self.reject()
 
+    def accept(self):
+        # for i in range(self.current_players.count()):
+        #     item = self.current_players.item(i)
+        #     print(self.torna_id, item.data(Qt.UserRole), item.text()) # itt vannak a beszúrandó adatok
+        super().accept()
+        # INSERT INTO `torna_resztvevok` (`player_id`, `player_name`, `torna_id`)
+        # VALUES ('1111', 'teszt_user2', '8892') ON DUPLICATE KEY UPDATE player_name='teszt_user2';
     def read_config(self):
         if os.path.exists('config.ini'):
             # Van config.ini, ki kell értékelni

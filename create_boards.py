@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, QGridLayout, QScrollArea, QListWidget, \
-    QListWidgetItem, QPushButton, QDialog, QLabel, QMessageBox
+    QListWidgetItem, QPushButton, QDialog, QLabel, QMessageBox, QComboBox
 from PySide2.QtGui import QPainter, QPen, QBrush, QColor, QPixmap, QDrag
 from PySide2.QtCore import Qt, QMimeData, QDataStream, QIODevice, QByteArray
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
@@ -51,9 +51,13 @@ class CsoportTabla(QDialog):
     def __init__(self, parent=None):
         super(CsoportTabla, self).__init__(parent)
         self.setWindowTitle("Drag&Drop CustomWidget-el")
-        self.create_widgets()
-        self.set_layout()
-        # self.resize(1000, 400)
+        self.create_torna_selection()
+
+        self.hatter = QVBoxLayout()
+        self.hatter.addWidget(self.tournaments)
+        self.setLayout(self.hatter)
+        # self.create_widgets()
+        # self.set_layout()
 
     def create_widgets(self):
         self.resztvevok = resztvevokLista()
@@ -90,7 +94,10 @@ class CsoportTabla(QDialog):
         # self.clear_button.clicked.connect(self.clear_all_torna_match) # todo visszarakni, de ez mindent töröl!!!!
 
     def set_layout(self):
+        # hatter = QVBoxLayout()
         main_layout = QHBoxLayout()
+        # hatter.addWidget(self.tournaments)
+        self.hatter.addLayout(main_layout)
         groups = QWidget()
         groups.setFixedWidth((sorok_szama * 50) + 200 )
         widgets_layout = QVBoxLayout()
@@ -129,7 +136,47 @@ class CsoportTabla(QDialog):
 
         main_layout.addWidget(scroll)
         main_layout.addLayout(lista_layout)
-        self.setLayout(main_layout)
+        # self.setLayout(hatter)
+
+    def create_torna_selection(self):
+        self.tournaments = QComboBox()
+        self.tournaments.setModelColumn(0)
+        self.tournaments.currentIndexChanged.connect(self.torna_valasztas)
+        self.load_torna()
+
+
+    def load_torna(self):
+        torna = QSqlQueryModel()
+        query = QSqlQuery("select * from torna_settings where aktiv=2")
+        torna.setQuery(query)
+        if torna.record(0).value(0):
+            for i in range(torna.rowCount()):
+                self.tournaments.addItem(torna.record(i).value(1), torna.record(i).value(0)) # a value(0) a torna_id
+        else:
+            print("Nincs aktív torna")
+
+    def torna_valasztas(self, i):
+        self.torna_id = self.tournaments.itemData(i)
+        # tornak = QSqlQueryModel()
+        # tornak_query = QSqlQuery(f"select * from torna_settings where torna_id={self.torna_id}")
+        # tornak.setQuery(tornak_query)
+        torna = QSqlQuery(f"select * from torna_settings where torna_id={self.torna_id}")
+        torna.exec_()
+        while torna.next():
+            self.csoportok_szama = torna.value(3)
+            self.sorok_szama = torna.value(4)
+            self.variant = torna.value(5)
+            self.sets = torna.value(7)
+            self.legsperset = torna.value(8)
+
+        print(self.torna_id, self.csoportok_szama, self.sorok_szama, self.variant, self.sets, self.legsperset)
+        self.create_widgets()
+        self.set_layout()
+        # self.current_players.clear()
+        # for i in range(players.rowCount()):
+        #     item = QListWidgetItem(players.record(i).value(1))
+        #     item.setData(Qt.UserRole, players.record(i).value(0))
+        #     self.current_players.addItem(item)
 
     def clear_all_torna_match(self):
         print("Rekordok törlése")

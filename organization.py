@@ -5,7 +5,8 @@ import os, sys
 from menus import create_menus_org
 from torna_settings import TornaSettingsDialog
 from show_torna_statusz import TornaStatuszWindow
-from board_teszt import CsoportTabla
+from create_boards import CsoportTabla
+from create_torna_playerlist import SelectPlayersWindow
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
 from database import create_tables
 
@@ -83,16 +84,17 @@ class OrgAppWindows(QMainWindow):
 
     @Slot()
     def create_players(self):
-        pass
+        self.select_players_window = SelectPlayersWindow(self)
+        self.select_players_window.show()
 
     @Slot()
     def create_boards(self):
-        self.create_boards_window = CsoportTabla()
+        self.create_boards_window = CsoportTabla(self)
         self.create_boards_window.show()
 
     @Slot()
     def torna_status(self):
-        self.torna_status_window = TornaStatuszWindow() # todo ezt majd az aktív tornák közül kell kiválasztani
+        self.torna_status_window = TornaStatuszWindow(self) # todo ezt majd az aktív tornák közül kell kiválasztani
         self.torna_status_window.show()
         # pass
 

@@ -341,6 +341,7 @@ class TornaSettingsDialog(QDialog):
                 record.setValue(19, self.leg_num_3place.value())
                 record.setValue(20, self.leg_num_final.value())
                 record.setValue(21,2)
+                # aktiv flag:  0: vége, 1: folyamatban, 2: szerkesztés alatt
                 # print(record)
                 if torna_settings_model.insertRecord(-1, record):
                     torna_settings_model.submitAll()
