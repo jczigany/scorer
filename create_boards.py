@@ -51,22 +51,26 @@ class CsoportTabla(QDialog):
     def __init__(self, parent=None):
         super(CsoportTabla, self).__init__(parent)
         self.setWindowTitle("Drag&Drop CustomWidget-el")
-        self.create_torna_selection()
-
         self.hatter = QVBoxLayout()
-        self.hatter.addWidget(self.tournaments)
         self.setLayout(self.hatter)
+
+        self.create_torna_selection()
+        self.hatter.addWidget(self.tournaments)
         # self.create_widgets()
         # self.set_layout()
 
     def create_widgets(self):
-        self.resztvevok = resztvevokLista()
+        if hasattr(self, 'resztvevok'):
+            self.resztvevok.load_data(self.torna_id)
+        else:
+            self.resztvevok = resztvevokLista(self.torna_id)
+            self.resztvevok.load_data(self.torna_id)
 
         # GroupMemberWidget-ek
         self.csoportok = []
-        for i in range(csoportok_szama): # Csoportok száma
+        for i in range(self.csoportok_szama): # Csoportok száma
             self.csoportoszlop = []
-            for j in range(sorok_szama): # fő/csoport
+            for j in range(self.sorok_szama): # fő/csoport
                 self.csoportoszlop.append(GroupMemberWidget(self))
                 self.csoportoszlop[j]._set_csoport_number(i)
                 self.csoportoszlop[j]._set_csoport_sor(j)
@@ -74,11 +78,11 @@ class CsoportTabla(QDialog):
 
         # EredmenyWidget-ek
         self.eredmenyek = []
-        for i in range(csoportok_szama):
+        for i in range(self.csoportok_szama):
             self.csoport_eredmeny_matrix = []
-            for j in range(sorok_szama): # ami egyenlő az oszlopok számával!!!
+            for j in range(self.sorok_szama): # ami egyenlő az oszlopok számával!!!
                 self.eredmeny_oszlop = []
-                for x in range(sorok_szama):
+                for x in range(self.sorok_szama):
                     self.eredmeny_oszlop.append(EredmenyWidget(self))
                     self.eredmeny_oszlop[x]._set_csoport_number(i)
                     self.eredmeny_oszlop[x]._set_csoport_sor(x)
@@ -88,23 +92,32 @@ class CsoportTabla(QDialog):
             self.eredmenyek.append(self.csoport_eredmeny_matrix)
 
         # Gombok
-        self.generate_button = QPushButton("Generate")
-        self.generate_button.clicked.connect(self.generate_match_records)
-        self.clear_button = QPushButton("Clear")
+        if hasattr(self, 'generate_button'):
+            print("van gomb")
+            pass
+        else:
+            print("nincs gomb")
+            self.generate_button = QPushButton("Generate")
+            self.generate_button.clicked.connect(self.generate_match_records)
+        # self.clear_button = QPushButton("Clear")
         # self.clear_button.clicked.connect(self.clear_all_torna_match) # todo visszarakni, de ez mindent töröl!!!!
 
     def set_layout(self):
-        # hatter = QVBoxLayout()
-        main_layout = QHBoxLayout()
-        # hatter.addWidget(self.tournaments)
-        self.hatter.addLayout(main_layout)
+        # todo a main_layout összes widget-ét (és layou-át) trörölni kell, majd újra létrehozni
+        if hasattr(self, 'main_layout'):
+            for i in reversed(range(self.main_layout.count())):
+                self.main_layout.itemAt(i).widget().setParent(None) # ez csak a widget-ekre működik, a layout-oknál először törölni kell az ő widget-eiket is
+        else:
+            # for i in reversed(range(main_layout.cou))
+            self.main_layout = QHBoxLayout()
+            self.hatter.addLayout(self.main_layout)
+
         groups = QWidget()
-        groups.setFixedWidth((sorok_szama * 50) + 200 )
+        groups.setFixedWidth((self.sorok_szama * 50) + 200 )
         widgets_layout = QVBoxLayout()
-        # widgets_layout
         groups.setLayout(widgets_layout)
 
-        for n in range(csoportok_szama): # csoportok száma
+        for n in range(self.csoportok_szama): # csoportok száma
             locals()['csoport_layout' + str(n)] = QGridLayout() # Létrehozzuk az adott sorszámú csoport layout-ját
             locals()['csoport_layout' + str(n)].setContentsMargins(0, 0, 0, 0)
             locals()['csoport_layout' + str(n)].setHorizontalSpacing(0)
@@ -114,36 +127,29 @@ class CsoportTabla(QDialog):
             # Végigmegyünk a sorokon   :  i: sorok száma, n: csoport száma
                 # a layout 1. oszlopát feltöltjük a tömbben tárolt custom widget-ekkel
                 locals()['csoport_layout' + str(n)].addWidget(self.csoportok[n][i], i + 1, 0)
-                # todo itt ugyanígy kell hozzáadni az eredményösszesítő widgeteket
-                # Itt töltjük fel az eredmény-widget-eket (tombben tárolva, mint a GroupMemberWidget-ek)
-                # eredmenyek[x, y, z] x: csoport, y: oszlop, z: sor
+                # Itt töltjük fel az eredmény-widget-eket (tombben tárolva, mint a GroupMemberWidget-ek) eredmenyek[x, y, z] x: csoport, y: oszlop, z: sor
                 for x in range(len(self.csoportok[n])): # Ez lesz az oszlop(max = sorok száma) x: oszlop száma
                     locals()['csoport_layout' + str(n)].addWidget(self.eredmenyek[n][i][x], i + 1, x + 1)
-
-            # widgets_layout.addWidget(EredmenyWidget())
             locals()['csoport_layout' + str(n)].addWidget(QLabel("Csoport_" + str(n + 1)), 0, 0)
 
         lista_layout = QVBoxLayout()
         lista_layout.addWidget(self.resztvevok)
         lista_layout.addWidget(self.generate_button)
-        lista_layout.addWidget(self.clear_button)
+        # lista_layout.addWidget(self.clear_button)
 
         scroll = QScrollArea()
         scroll.setWidget(groups)
-        # scroll.setWidgetResizable(True)
-        scroll.setFixedWidth((sorok_szama * 50) + 220 )
+        scroll.setFixedWidth((self.sorok_szama * 50) + 220 )
         scroll.setFixedHeight(600)
 
-        main_layout.addWidget(scroll)
-        main_layout.addLayout(lista_layout)
-        # self.setLayout(hatter)
+        self.main_layout.addWidget(scroll)
+        self.main_layout.addLayout(lista_layout)
 
     def create_torna_selection(self):
         self.tournaments = QComboBox()
         self.tournaments.setModelColumn(0)
-        self.tournaments.currentIndexChanged.connect(self.torna_valasztas)
+        self.tournaments.activated.connect(self.torna_valasztas)
         self.load_torna()
-
 
     def load_torna(self):
         torna = QSqlQueryModel()
@@ -157,9 +163,6 @@ class CsoportTabla(QDialog):
 
     def torna_valasztas(self, i):
         self.torna_id = self.tournaments.itemData(i)
-        # tornak = QSqlQueryModel()
-        # tornak_query = QSqlQuery(f"select * from torna_settings where torna_id={self.torna_id}")
-        # tornak.setQuery(tornak_query)
         torna = QSqlQuery(f"select * from torna_settings where torna_id={self.torna_id}")
         torna.exec_()
         while torna.next():
@@ -169,7 +172,6 @@ class CsoportTabla(QDialog):
             self.sets = torna.value(7)
             self.legsperset = torna.value(8)
 
-        print(self.torna_id, self.csoportok_szama, self.sorok_szama, self.variant, self.sets, self.legsperset)
         self.create_widgets()
         self.set_layout()
         # self.current_players.clear()
@@ -332,16 +334,25 @@ class EredmenyWidget(QWidget):
 
 
 class resztvevokLista(QListWidget):
-    def __init__(self):
+    def __init__(self, torna_id):
         super(resztvevokLista, self).__init__()
-        self.setMaximumWidth(200)
+        self.torna_id = torna_id
+        # self.setMaximumWidth(200)
+        # self.clear()
+        self.setFixedWidth(200)
         self.setMaximumHeight(300)
-        for i in cegek:
-            item = QListWidgetItem(i[1])
-            item.setData(1, i[0])
-            self.addItem(item)
+        # self.load_data()
         self.setAcceptDrops(True)
         self.setDragEnabled(True)
+
+    def load_data(self, tornaid):
+        self.clear()
+        query = QSqlQuery(f"select * from torna_resztvevok where torna_id={tornaid}")
+        query.exec_()
+        while query.next():
+            item = QListWidgetItem(query.value(1))
+            item.setData(1, query.value(0))
+            self.addItem(item)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasFormat("application/x-lista-item"):
