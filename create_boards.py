@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, QGridLayout, QScrollArea, QListWidget, \
-    QListWidgetItem, QPushButton, QDialog, QLabel, QMessageBox, QComboBox
+    QListWidgetItem, QPushButton, QDialog, QLabel, QMessageBox, QComboBox, QSpacerItem, QSizePolicy
 from PySide2.QtGui import QPainter, QPen, QBrush, QColor, QPixmap, QDrag
 from PySide2.QtCore import Qt, QMimeData, QDataStream, QIODevice, QByteArray
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
@@ -23,39 +23,45 @@ if not db.open():
     )
     sys.exit(1)
 
-cegek = [
-    [1015, "Videoton"],
-    [1016, "RF-IT"],
-    [1017, "Create Value"],
-    [1018, "Bernstein"],
-    [1019, "Datalogic"],
-    [1020, "DIME"],
-    [1021, "eSpell"],
-    [1022, "NetIng"],
-    [1023, "Infobiz"],
-    [1024, "Info-Mágus"],
-    [1025, "Eurocert"],
-    [1026, "Domusch"],
-    [1027, "Hajdú"],
-    [1028, "Brand Made"]
-]
-csoportok_szama = 4
-sorok_szama = 4
-torna_id = 8889
-variant = "501"
-sets = 1
-legsperset = 5
-csoport_tabla = [6, 5, 5, 6]
+# cegek = [
+#     [1015, "Videoton"],
+#     [1016, "RF-IT"],
+#     [1017, "Create Value"],
+#     [1018, "Bernstein"],
+#     [1019, "Datalogic"],
+#     [1020, "DIME"],
+#     [1021, "eSpell"],
+#     [1022, "NetIng"],
+#     [1023, "Infobiz"],
+#     [1024, "Info-Mágus"],
+#     [1025, "Eurocert"],
+#     [1026, "Domusch"],
+#     [1027, "Hajdú"],
+#     [1028, "Brand Made"]
+# ]
+# csoportok_szama = 4
+# sorok_szama = 4
+# torna_id = 8889
+# variant = "501"
+# sets = 1
+# legsperset = 5
+# csoport_tabla = [6, 5, 5, 6]
 
 class CsoportTabla(QDialog):
     def __init__(self, parent=None):
         super(CsoportTabla, self).__init__(parent)
-        self.setWindowTitle("Drag&Drop CustomWidget-el")
+        self.setWindowTitle("Csoportok, ágak összeállítása")
+        self.setMinimumHeight(650)
+        self.setMinimumWidth(700)
+        # self.resize(800, 650)
         self.hatter = QVBoxLayout()
         self.setLayout(self.hatter)
 
         self.create_torna_selection()
         self.hatter.addWidget(self.tournaments)
+
+        self.space = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.hatter.addItem(self.space)
         # self.create_widgets()
         # self.set_layout()
 
@@ -93,22 +99,31 @@ class CsoportTabla(QDialog):
 
         # Gombok
         if hasattr(self, 'generate_button'):
-            print("van gomb")
             pass
         else:
-            print("nincs gomb")
             self.generate_button = QPushButton("Generate")
             self.generate_button.clicked.connect(self.generate_match_records)
-        # self.clear_button = QPushButton("Clear")
-        # self.clear_button.clicked.connect(self.clear_all_torna_match) # todo visszarakni, de ez mindent töröl!!!!
+            # self.clear_button = QPushButton("Clear")
+            # self.clear_button.clicked.connect(self.clear_all_torna_match) # todo visszarakni, de ez mindent töröl!!!!
+
+    def clear_layout(self, lay):
+        if lay is not None:
+            while lay.count():
+                child = lay.takeAt(0)
+                if child.widget() is not None:
+                    child.widget().deleteLater()
+                elif child.layout() is not None:
+                    self.clear_layout(child.layout())
 
     def set_layout(self):
-        # todo a main_layout összes widget-ét (és layou-át) trörölni kell, majd újra létrehozni
         if hasattr(self, 'main_layout'):
             for i in reversed(range(self.main_layout.count())):
-                self.main_layout.itemAt(i).widget().setParent(None) # ez csak a widget-ekre működik, a layout-oknál először törölni kell az ő widget-eiket is
+                if self.main_layout.itemAt(i).widget() is not None:
+                    self.main_layout.removeItem(self.main_layout.itemAt(i))
+            for i in reversed(range(self.main_layout.count())):
+                if self.main_layout.itemAt(i).layout() is not None:
+                    self.main_layout.removeItem(self.main_layout.itemAt(i))
         else:
-            # for i in reversed(range(main_layout.cou))
             self.main_layout = QHBoxLayout()
             self.hatter.addLayout(self.main_layout)
 
@@ -158,8 +173,6 @@ class CsoportTabla(QDialog):
         if torna.record(0).value(0):
             for i in range(torna.rowCount()):
                 self.tournaments.addItem(torna.record(i).value(1), torna.record(i).value(0)) # a value(0) a torna_id
-        else:
-            print("Nincs aktív torna")
 
     def torna_valasztas(self, i):
         self.torna_id = self.tournaments.itemData(i)
@@ -174,11 +187,6 @@ class CsoportTabla(QDialog):
 
         self.create_widgets()
         self.set_layout()
-        # self.current_players.clear()
-        # for i in range(players.rowCount()):
-        #     item = QListWidgetItem(players.record(i).value(1))
-        #     item.setData(Qt.UserRole, players.record(i).value(0))
-        #     self.current_players.addItem(item)
 
     def clear_all_torna_match(self):
         print("Rekordok törlése")
