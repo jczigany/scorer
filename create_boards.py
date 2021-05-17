@@ -1,6 +1,6 @@
 from PySide2.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, QGridLayout, QScrollArea, QListWidget, \
     QListWidgetItem, QPushButton, QDialog, QLabel, QMessageBox, QComboBox, QSpacerItem, QSizePolicy
-from PySide2.QtGui import QPainter, QPen, QBrush, QColor, QPixmap, QDrag
+from PySide2.QtGui import QPainter, QPen, QBrush, QColor, QPixmap, QDrag, QFont
 from PySide2.QtCore import Qt, QMimeData, QDataStream, QIODevice, QByteArray
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
 import sys
@@ -80,6 +80,7 @@ class CsoportTabla(QDialog):
                 self.csoportoszlop.append(GroupMemberWidget(self))
                 self.csoportoszlop[j]._set_csoport_number(i)
                 self.csoportoszlop[j]._set_csoport_sor(j)
+                self.csoportoszlop[j]._set_sorok_szama(self.sorok_szama)
             self.csoportok.append(self.csoportoszlop)
 
         # EredmenyWidget-ek
@@ -199,14 +200,12 @@ class CsoportTabla(QDialog):
             for sor in range(len(self.csoportok[cs])):
                 if self.csoportok[cs][sor]._get_player_id() != 0:
                     tabla_rekord = []
-                    tabla_rekord.append(torna_id)
+                    tabla_rekord.append(self.torna_id)
                     tabla_rekord.append(self.csoportok[cs][sor]._get_player_id())
                     tabla_rekord.append(self.csoportok[cs][sor]._get_csoport_number())
                     tabla_rekord.append(self.csoportok[cs][sor]._get_csoport_sor())
                     tabla_rekordok.append(tabla_rekord)
 
-        # for i in range(len(tabla_rekordok)):
-        #     print(tabla_rekordok[i])
 
         insertDataQuery = QSqlQuery()
         insertDataQuery.prepare(
@@ -224,26 +223,27 @@ class CsoportTabla(QDialog):
             for i in range(len(tabla_rekordok[x])):
                 insertDataQuery.addBindValue(tabla_rekordok[x][i])
             insertDataQuery.exec_()
+        query =QSqlQuery(f"update torna_settings set aktiv=1 where torna_id={self.torna_id}")
+        query.exec_()
 
     def generate_match_records(self):
         match_rekords = []
-        for cs in range(csoportok_szama):
-            for sor in range(sorok_szama):
-                for oszlop in range(sor + 1, sorok_szama):
+        csoport_tabla = [6, 5, 4, 3, 2, 1] # todo táblához rendeléshez kell majd
+        for cs in range(self.csoportok_szama):
+            for sor in range(self.sorok_szama):
+                for oszlop in range(sor + 1, self.sorok_szama):
                     if self.eredmenyek[cs][sor][oszlop]._get_p1_id() != 0 and self.eredmenyek[cs][sor][oszlop]._get_p2_id() != 0:
-                        match_id = (10000 * torna_id) + (100 * int(self.eredmenyek[cs][sor][oszlop]._get_p1_id())) + int(self.eredmenyek[cs][sor][oszlop]._get_p2_id())
+                        match_id = (10000 * self.torna_id) + (100 * int(self.eredmenyek[cs][sor][oszlop]._get_p1_id())) + int(self.eredmenyek[cs][sor][oszlop]._get_p2_id())
                         match_rekord = []
-                        match_rekord.append(torna_id)
+                        match_rekord.append(self.torna_id)
                         match_rekord.append(match_id)
                         match_rekord.append(self.eredmenyek[cs][sor][oszlop]._get_p1_id())
                         match_rekord.append(self.eredmenyek[cs][sor][oszlop]._get_p2_id())
-                        match_rekord.append(variant)
-                        match_rekord.append(sets)
-                        match_rekord.append(legsperset)
+                        match_rekord.append(self.variant)
+                        match_rekord.append(self.sets)
+                        match_rekord.append(self.legsperset)
                         match_rekord.append(csoport_tabla[cs])
                         match_rekords.append(match_rekord)
-        for x in range(len(match_rekords)):
-            print(match_rekords[x])
 
         insertDataQuery = QSqlQuery()
         insertDataQuery.prepare(
@@ -322,22 +322,22 @@ class EredmenyWidget(QWidget):
             self.painter.setBrush(brush_black)
             self.painter.setPen(pen0)
             self.painter.drawRect(0, 0, 49, 49)
-            self.painter.setPen(pen_red)
-            self.painter.drawText(15, 20, str(self._player1_id) + " : " + str(self._player2_id))
-            self.painter.drawText(20, 35, "X")
+            # self.painter.setPen(pen_red)
+            # self.painter.drawText(15, 20, str(self._player1_id) + " : " + str(self._player2_id))
+            # self.painter.drawText(20, 35, "X")
         elif self._player1_id == 0 or self._player2_id == 0:
             self.painter.setBrush(brush_csak1)
             self.painter.setPen(pen0)
             self.painter.drawRect(0, 0, 49, 49)
-            self.painter.setPen(pen_blue)
-            self.painter.drawText(15, 20, str(self._player1_id) + " : " + str(self._player2_id))
-            self.painter.drawText(20, 35, "X")
+            # self.painter.setPen(pen_blue)
+            # self.painter.drawText(15, 20, str(self._player1_id) + " : " + str(self._player2_id))
+            # self.painter.drawText(20, 35, "X")
         else:
             self.painter.setBrush(brush_ready)
             self.painter.setPen(pen0)
             self.painter.drawRect(0, 0, 49, 49)
-            self.painter.setPen(pen_black)
-            self.painter.drawText(15, 20, str(self._player1_id) + " : " + str(self._player2_id))
+            # self.painter.setPen(pen_black)
+            # self.painter.drawText(15, 20, str(self._player1_id) + " : " + str(self._player2_id))
         self.painter.end()
 
 
@@ -419,6 +419,9 @@ class GroupMemberWidget(QWidget):
         self._csoport_sor = 0
         self.painter = QPainter()
 
+    def _set_sorok_szama(self, number):
+        self.sorok_szama = number
+
     def _set_player_id(self, number):
         self._player_id = number
     # todo a beállításnál ez legyen használva
@@ -446,8 +449,12 @@ class GroupMemberWidget(QWidget):
         pen = self.painter.pen()
         self.painter.setPen(pen0)
         self.painter.drawRect(0, 0, 199, 49)
+        font = QFont("Verdana, 20")
+        font.setBold(True)
+        self.painter.setFont(font)
         self.painter.setPen(pen)
-        self.painter.drawText(20, 35, str(self._csoport_number) + ":" + str(self._csoport_sor) + ":" + self._player_name)
+        self.painter.drawText(5, 30, str(self._csoport_sor + 1))
+        self.painter.drawText(20, 30, self._player_name)
         self.painter.end()
 
     def dragEnterEvent(self, event):
@@ -469,10 +476,10 @@ class GroupMemberWidget(QWidget):
             stream = QDataStream(data, QIODevice.ReadOnly)
             self._player_name = stream.readQString()
             self._player_id = stream.readInt16() # sor eseten p1, oszlopnál p2
-            for i in range(sorok_szama):
+            for i in range(self.sorok_szama):
                 self.parent.eredmenyek[self._csoport_number][self._csoport_sor][i]._set_p1_id(self._player_id)
                 self.parent.eredmenyek[self._csoport_number][i][self._csoport_sor]._set_p2_id(self._player_id)
-            print("id: ", self._player_id, "csoport: ", self._get_csoport_number(), "sor: ", self._get_csoport_sor())
+            # print("id: ", self._player_id, "csoport: ", self._get_csoport_number(), "sor: ", self._get_csoport_sor())
             # icon = QIcon()
             # stream >> icon
             event.setDropAction(Qt.MoveAction)
@@ -497,7 +504,7 @@ class GroupMemberWidget(QWidget):
         if drag.exec_(Qt.MoveAction) == Qt.MoveAction:
             self._player_name = ""
             self._player_id = 0
-            for i in range(sorok_szama):
+            for i in range(self.sorok_szama):
                 self.parent.eredmenyek[self._csoport_number][self._csoport_sor][i]._set_p1_id(0)
                 self.parent.eredmenyek[self._csoport_number][i][self._csoport_sor]._set_p2_id(0)
             self.update()

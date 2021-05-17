@@ -1,3 +1,5 @@
+import sys
+
 from PySide2.QtWidgets import QApplication, QMessageBox, QDialog, QDialogButtonBox, QLabel, QLineEdit, QCheckBox, \
     QPushButton, QVBoxLayout, QHBoxLayout, QRadioButton, QSpinBox, QCompleter
 from PySide2.QtCore import *

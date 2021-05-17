@@ -42,7 +42,7 @@ class TornaStatuszWindow(QDialog):
         self.nyereshez_kell = query.value(8)
         self.pont_gyozelem = query.value(11)
         self.pont_vereseg = query.value(13)
-        print("nyeréshez kell: ", self.nyereshez_kell)
+        # print("nyeréshez kell: ", self.nyereshez_kell)
         self.tablak = []
         for cs in range(self.csoportok_szama):
             tablasor = []
@@ -66,7 +66,7 @@ class TornaStatuszWindow(QDialog):
                 for y in range(self.sorok_szama):
                     if query2.value(0) == self.tablak[x][y]:
                         self.nevek[x][y] = query2.value(1)
-        print(self.tablak, self.nevek)
+        # print(self.tablak, self.nevek)
 
     def create_widgets(self):
         # GroupMemberWidget-ek
