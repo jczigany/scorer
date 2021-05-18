@@ -1,10 +1,10 @@
 from PySide2.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, QGridLayout, QScrollArea, QListWidget, \
-    QListWidgetItem, QPushButton, QDialog, QLabel, QMessageBox
+    QListWidgetItem, QPushButton, QDialog, QLabel, QMessageBox, QComboBox, QSpacerItem, QSizePolicy, QMenu
 from PySide2.QtGui import QPainter, QPen, QBrush, QColor, QPixmap, QDrag
 from PySide2.QtCore import Qt, QMimeData, QDataStream, QIODevice, QByteArray
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
 import sys
-
+from datetime import datetime
 db = QSqlDatabase.addDatabase('QMYSQL')
 db.setHostName('192.168.68.22')
 db.setDatabaseName('cida')
@@ -19,37 +19,62 @@ if not db.open():
     )
     sys.exit(1)
 
-torna_id = 8889
+# torna_id = 8889
 # csoportok_szama = 0  # todo torna_settings-ből lekérni a 'csoportok_szama' ahol a torna_id a megadott
 # sorok_szama = 0 # todo torna_settings-ből lekérni a 'fo_per_csoport' ahol a torna_id a megadott
-csoport_tabla = [6, 5, 5, 6] # todo ez sem a settings-ben, sem a torna_tablakban nincs rögzítve(a torna_match tartalmazza, ott viszont a csoport száma nincs
+# csoport_tabla = [6, 5, 5, 6] # todo ez sem a settings-ben, sem a torna_tablakban nincs rögzítve(a torna_match tartalmazza, ott viszont a csoport száma nincs
 
 
 class TornaStatuszWindow(QDialog):
     def __init__(self, parent=None):
         super(TornaStatuszWindow, self).__init__(parent)
         self.setWindowTitle("Torna állása")
-        self.get_params()
-        self.create_widgets()
-        self.set_layout()
+        self.setMinimumHeight(650)
+        # self.setMinimumWidth(700)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.hatter = QVBoxLayout()
+        self.setLayout(self.hatter)
+        self.create_torna_selection()
+        self.hatter.addWidget(self.tournaments)
+        self.space = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.hatter.addItem(self.space)
 
-    def get_params(self):
-        query = QSqlQuery(f"select * from torna_settings where torna_id={torna_id}")
-        query.exec_()
-        query.first()
-        self.csoportok_szama = query.value(3)
-        self.sorok_szama = query.value(4)
-        self.nyereshez_kell = query.value(8)
-        self.pont_gyozelem = query.value(11)
-        self.pont_vereseg = query.value(13)
-        # print("nyeréshez kell: ", self.nyereshez_kell)
+    def create_torna_selection(self):
+        self.tournaments = QComboBox()
+        self.tournaments.setMinimumWidth(700)
+        self.tournaments.setModelColumn(0)
+        self.tournaments.activated.connect(self.torna_valasztas)
+        self.load_torna()
+
+    def load_torna(self):
+        torna = QSqlQueryModel()
+        query = QSqlQuery("select * from torna_settings where aktiv=1")
+        torna.setQuery(query)
+        if torna.record(0).value(0):
+            for i in range(torna.rowCount()):
+                self.tournaments.addItem(torna.record(i).value(1), torna.record(i).value(0)) # a value(0) a torna_id
+
+    def torna_valasztas(self, i):
+        self.torna_id = self.tournaments.itemData(i)
+        torna = QSqlQuery(f"select * from torna_settings where torna_id={self.torna_id}")
+        torna.exec_()
+        while torna.next():
+            self.csoportok_szama = torna.value(3)
+            self.sorok_szama = torna.value(4)
+            self.variant = torna.value(5)
+            self.sets = torna.value(7)
+            self.legsperset = torna.value(8)
+            self.nyereshez_kell = torna.value(8)
+            self.pont_gyozelem = torna.value(11)
+            self.pont_vereseg = torna.value(13)
+
         self.tablak = []
         for cs in range(self.csoportok_szama):
             tablasor = []
             for sor in range(self.sorok_szama):
                 tablasor.append(0)
             self.tablak.append(tablasor)
-        query2 = QSqlQuery(f"select * from torna_tablak where torna_id={torna_id}")
+        query2 = QSqlQuery(f"select * from torna_tablak where torna_id={self.torna_id}")
         query2.exec_()
         while query2.next():
             self.tablak[query2.value(2)][query2.value(3)] = query2.value(1)
@@ -59,13 +84,51 @@ class TornaStatuszWindow(QDialog):
             for sor in range(self.sorok_szama):
                 neveksor.append("")
             self.nevek.append(neveksor)
-        query2 = QSqlQuery(f"select player_id, player_name from torna_resztvevok where torna_id={torna_id}")
+        query2 = QSqlQuery(f"select player_id, player_name from torna_resztvevok where torna_id={self.torna_id}")
         query2.exec_()
         while query2.next():
             for x in range(self.csoportok_szama):
                 for y in range(self.sorok_szama):
                     if query2.value(0) == self.tablak[x][y]:
                         self.nevek[x][y] = query2.value(1)
+
+        self.create_widgets()
+        self.set_layout()
+
+    def get_params(self):
+        pass
+        # query = QSqlQuery(f"select * from torna_settings where torna_id={self.torna_id}")
+        # query.exec_()
+        # query.first()
+        # self.csoportok_szama = query.value(3)
+        # self.sorok_szama = query.value(4)
+        # self.nyereshez_kell = query.value(8)
+        # self.pont_gyozelem = query.value(11)
+        # self.pont_vereseg = query.value(13)
+        # # print("nyeréshez kell: ", self.nyereshez_kell)
+        # self.tablak = []
+        # for cs in range(self.csoportok_szama):
+        #     tablasor = []
+        #     for sor in range(self.sorok_szama):
+        #         tablasor.append(0)
+        #     self.tablak.append(tablasor)
+        # query2 = QSqlQuery(f"select * from torna_tablak where torna_id={torna_id}")
+        # query2.exec_()
+        # while query2.next():
+        #     self.tablak[query2.value(2)][query2.value(3)] = query2.value(1)
+        # self.nevek = []
+        # for cs in range(self.csoportok_szama):
+        #     neveksor = []
+        #     for sor in range(self.sorok_szama):
+        #         neveksor.append("")
+        #     self.nevek.append(neveksor)
+        # query2 = QSqlQuery(f"select player_id, player_name from torna_resztvevok where torna_id={torna_id}")
+        # query2.exec_()
+        # while query2.next():
+        #     for x in range(self.csoportok_szama):
+        #         for y in range(self.sorok_szama):
+        #             if query2.value(0) == self.tablak[x][y]:
+        #                 self.nevek[x][y] = query2.value(1)
         # print(self.tablak, self.nevek)
 
     def create_widgets(self):
@@ -115,11 +178,25 @@ class TornaStatuszWindow(QDialog):
                 self.csoport_szum_eredmeny_matrix.append(self.szum_eredmeny_oszlop)
             self.szum_eredmenyek.append(self.csoport_szum_eredmeny_matrix)
 
-        self.refresh_button = QPushButton("Frissítés")
-        self.refresh_button.clicked.connect(self.update_statusz)
+        if hasattr(self, 'refresh_button'):
+            pass
+        else:
+            self.refresh_button = QPushButton("Frissítés")
+            self.refresh_button.clicked.connect(self.update_statusz)
 
     def set_layout(self):
-        main_layout = QHBoxLayout()
+
+        if hasattr(self, 'main_layout'):
+            for i in reversed(range(self.main_layout.count())):
+                if self.main_layout.itemAt(i).widget() is not None:
+                    self.main_layout.itemAt(i).widget().deleteLater()
+            for i in reversed(range(self.main_layout.count())):
+                if self.main_layout.itemAt(i).layout() is not None:
+                    self.main_layout.itemAt(i).layout().deleteLater()
+        else:
+            self.main_layout = QHBoxLayout()
+            self.hatter.addLayout(self.main_layout)
+
         groups = QWidget()
         groups.setFixedWidth(((self.sorok_szama + 5) * 50) + 200 )
         widgets_layout = QVBoxLayout()
@@ -165,14 +242,13 @@ class TornaStatuszWindow(QDialog):
         scroll.setFixedWidth(((self.sorok_szama + 5) * 50) + 220)
         scroll.setFixedHeight(740)
 
-        main_layout.addWidget(scroll)
-        main_layout.addLayout(lista_layout)
-        self.setLayout(main_layout)
+        self.main_layout.addWidget(scroll)
+        self.main_layout.addLayout(lista_layout)
 
     def update_statusz(self):
         legek = []
         query = QSqlQuery(f"SELECT matches.*,torna_match.player1_id as p1,torna_match.player2_id as p2 FROM matches,\
-         torna_match WHERE matches.match_id=torna_match.match_id and torna_match.torna_id={torna_id}")
+         torna_match WHERE matches.match_id=torna_match.match_id and torna_match.torna_id={self.torna_id}")
         query.exec_()
         while query.next():
             akt_leg = []
@@ -279,6 +355,59 @@ class EredmenyWidget(QWidget):
         self._leg2 = 0
         self._pontszam = -1
         self.painter = QPainter()
+
+    def contextMenuEvent(self, event):
+        print("context-menü")
+        contextMenu = QMenu(self)
+        firstAction = contextMenu.addAction("Egy")
+        secondAction = contextMenu.addAction("Kettő")
+        action = contextMenu.exec_(self.mapToGlobal(event.pos()))
+        if action == firstAction:
+            if self._csoport_sor < self._csoport_oszlop:
+                match_id = (10000 * self.parent.torna_id) + (100 * self._player1_id) + self._player2_id
+            elif self._csoport_sor > self._csoport_oszlop:
+                match_id = (10000 * self.parent.torna_id) + (100 * self._player2_id) + self._player1_id
+            print("match_id: ", match_id, "player1: ", self._player1_id, self.parent.torna_id, "hány leg", self.parent.nyereshez_kell)
+            winner_id = self._player1_id
+            set_id = 1
+            now = datetime.now().strftime("%Y-%m-%d %H.%M.%S")
+            # for i in range(1, self.parent.nyereshez_kell + 1):
+            #     query_string = f"insert into matches (match_id, leg_id, set_id, winner_id, timestamp) values ({match_id}, {i}, {set_id}, {winner_id}, '{now}')"
+            #     print(query_string)
+            #     query = QSqlQuery(query_string)
+            #     query.exec_()
+
+            query3 = QSqlQuery(f"delete from matches where match_id={match_id} and winner_id={winner_id}", db=db)
+            query3.exec_()
+            print("lekérés-1")
+            # query3.finish()
+
+            insertDataQuery = QSqlQuery()
+            insertDataQuery.prepare(
+                """ 
+                insert into matches (
+                      match_id,
+                      leg_id,
+                      set_id,
+                      winner_id,
+                      timestamp
+                      )
+                values (?, ?, ?, ?, ?)
+                """
+            )
+            for x in range(1, self.parent.nyereshez_kell + 1):
+                # for i in range(len(match_rekords[x])):
+                insertDataQuery.addBindValue(match_id)
+                insertDataQuery.addBindValue(x)
+                insertDataQuery.addBindValue(1)
+                insertDataQuery.addBindValue(winner_id)
+                insertDataQuery.addBindValue(now)
+                insertDataQuery.exec_()
+
+            query2 = QSqlQuery(f"update torna_match set match_status=2 where match_id={match_id}", db=db)
+            query2.exec_()
+            print("lekérés-2")
+            # query2.finish()
 
     def update_osszes_pont(self):
         self.parent.szum_eredmenyek[self._csoport_number][3][self._csoport_sor]._set_ertek(0)

@@ -52,8 +52,9 @@ class CsoportTabla(QDialog):
         super(CsoportTabla, self).__init__(parent)
         self.setWindowTitle("Csoportok, ágak összeállítása")
         self.setMinimumHeight(650)
-        self.setMinimumWidth(700)
+        # self.setMinimumWidth(700)
         # self.resize(800, 650)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.hatter = QVBoxLayout()
         self.setLayout(self.hatter)
 
@@ -107,23 +108,23 @@ class CsoportTabla(QDialog):
             # self.clear_button = QPushButton("Clear")
             # self.clear_button.clicked.connect(self.clear_all_torna_match) # todo visszarakni, de ez mindent töröl!!!!
 
-    def clear_layout(self, lay):
-        if lay is not None:
-            while lay.count():
-                child = lay.takeAt(0)
-                if child.widget() is not None:
-                    child.widget().deleteLater()
-                elif child.layout() is not None:
-                    self.clear_layout(child.layout())
+    # def clear_layout(self, lay):
+    #     if lay is not None:
+    #         while lay.count():
+    #             child = lay.takeAt(0)
+    #             if child.widget() is not None:
+    #                 child.widget().deleteLater()
+    #             elif child.layout() is not None:
+    #                 self.clear_layout(child.layout())
 
     def set_layout(self):
         if hasattr(self, 'main_layout'):
             for i in reversed(range(self.main_layout.count())):
                 if self.main_layout.itemAt(i).widget() is not None:
-                    self.main_layout.removeItem(self.main_layout.itemAt(i))
+                    self.main_layout.itemAt(i).widget().deleteLater()
             for i in reversed(range(self.main_layout.count())):
                 if self.main_layout.itemAt(i).layout() is not None:
-                    self.main_layout.removeItem(self.main_layout.itemAt(i))
+                    self.main_layout.itemAt(i).layout().deleteLater()
         else:
             self.main_layout = QHBoxLayout()
             self.hatter.addLayout(self.main_layout)
@@ -157,12 +158,14 @@ class CsoportTabla(QDialog):
         scroll.setWidget(groups)
         scroll.setFixedWidth((self.sorok_szama * 50) + 220 )
         scroll.setFixedHeight(600)
+        scroll.updateGeometry()
 
         self.main_layout.addWidget(scroll)
         self.main_layout.addLayout(lista_layout)
 
     def create_torna_selection(self):
         self.tournaments = QComboBox()
+        self.tournaments.setMinimumWidth(500)
         self.tournaments.setModelColumn(0)
         self.tournaments.activated.connect(self.torna_valasztas)
         self.load_torna()
@@ -188,6 +191,8 @@ class CsoportTabla(QDialog):
 
         self.create_widgets()
         self.set_layout()
+        # self.hatter.activate()
+
 
     def clear_all_torna_match(self):
         print("Rekordok törlése")
@@ -223,6 +228,7 @@ class CsoportTabla(QDialog):
             for i in range(len(tabla_rekordok[x])):
                 insertDataQuery.addBindValue(tabla_rekordok[x][i])
             insertDataQuery.exec_()
+
         query =QSqlQuery(f"update torna_settings set aktiv=1 where torna_id={self.torna_id}")
         query.exec_()
 
