@@ -3,6 +3,7 @@ from PySide2.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, Q
 from PySide2.QtGui import QPainter, QPen, QBrush, QColor, QPixmap, QDrag, QFont
 from PySide2.QtCore import Qt, QMimeData, QDataStream, QIODevice, QByteArray
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
+from random import *
 import sys
 
 db = QSqlDatabase.addDatabase('QMYSQL')
@@ -23,29 +24,6 @@ if not db.open():
     )
     sys.exit(1)
 
-# cegek = [
-#     [1015, "Videoton"],
-#     [1016, "RF-IT"],
-#     [1017, "Create Value"],
-#     [1018, "Bernstein"],
-#     [1019, "Datalogic"],
-#     [1020, "DIME"],
-#     [1021, "eSpell"],
-#     [1022, "NetIng"],
-#     [1023, "Infobiz"],
-#     [1024, "Info-Mágus"],
-#     [1025, "Eurocert"],
-#     [1026, "Domusch"],
-#     [1027, "Hajdú"],
-#     [1028, "Brand Made"]
-# ]
-# csoportok_szama = 4
-# sorok_szama = 4
-# torna_id = 8889
-# variant = "501"
-# sets = 1
-# legsperset = 5
-# csoport_tabla = [6, 5, 5, 6]
 
 class CsoportTabla(QDialog):
     def __init__(self, parent=None):
@@ -103,19 +81,14 @@ class CsoportTabla(QDialog):
         if hasattr(self, 'generate_button'):
             pass
         else:
-            self.generate_button = QPushButton("Generate")
+            self.generate_button = QPushButton("Tábla véglegesítése")
             self.generate_button.clicked.connect(self.generate_match_records)
-            # self.clear_button = QPushButton("Clear")
-            # self.clear_button.clicked.connect(self.clear_all_torna_match) # todo visszarakni, de ez mindent töröl!!!!
 
-    # def clear_layout(self, lay):
-    #     if lay is not None:
-    #         while lay.count():
-    #             child = lay.takeAt(0)
-    #             if child.widget() is not None:
-    #                 child.widget().deleteLater()
-    #             elif child.layout() is not None:
-    #                 self.clear_layout(child.layout())
+        if hasattr(self, 'autofill_button'):
+            pass
+        else:
+            self.autofill_button = QPushButton("Automatikus kitöltés")
+            self.autofill_button.clicked.connect(self.generate_boards)
 
     def set_layout(self):
         if hasattr(self, 'main_layout'):
@@ -150,6 +123,7 @@ class CsoportTabla(QDialog):
             locals()['csoport_layout' + str(n)].addWidget(QLabel("Csoport_" + str(n + 1)), 0, 0)
 
         lista_layout = QVBoxLayout()
+        lista_layout.addWidget(self.autofill_button)
         lista_layout.addWidget(self.resztvevok)
         lista_layout.addWidget(self.generate_button)
         # lista_layout.addWidget(self.clear_button)
@@ -193,7 +167,6 @@ class CsoportTabla(QDialog):
         self.set_layout()
         # self.hatter.activate()
 
-
     def clear_all_torna_match(self):
         print("Rekordok törlése")
         query = QSqlQuery(f"delete from torna_match where torna_id={torna_id}")
@@ -231,6 +204,34 @@ class CsoportTabla(QDialog):
 
         query =QSqlQuery(f"update torna_settings set aktiv=1 where torna_id={self.torna_id}")
         query.exec_()
+
+    def generate_boards(self):
+        sorrend = []
+        for i in range(self.resztvevok.count()):
+            item = self.resztvevok.item(i)
+            sorrend.append([item.text(), item.data(1)])
+        ujsorrend = sample(sorrend, len(sorrend))
+        # print(ujsorrend)
+        # print(self.csoportok_szama, self.sorok_szama)
+        # valami ilyesmi kell
+        # self._player_name = stream.readQString()
+        # self._player_id = stream.readInt16()  # sor eseten p1, oszlopnál p2
+        atrakott = self.resztvevok.count()
+        for j in range(self.sorok_szama):
+            for i in range(self.csoportok_szama):
+                if atrakott > 0:
+                    atrakott -= 1
+                    self.csoportok[i][j]._set_player_name(ujsorrend[atrakott][0])
+                    self.csoportok[i][j]._set_player_id(ujsorrend[atrakott][1])
+                    # print("csoport:", self.csoportok[i][j]._csoport_number, "sor:", self.csoportok[i][j]._csoport_sor, "j-sor", j, "i-csoport:", i)
+                    for x in range(self.sorok_szama):
+                        self.eredmenyek[i][j][x]._set_p1_id(ujsorrend[atrakott][1])
+                        self.eredmenyek[i][x][j]._set_p2_id(ujsorrend[atrakott][1])
+                else:
+                    break
+            if atrakott == 0:
+                break
+        self.resztvevok.clear()
 
     def generate_match_records(self):
         match_rekords = []
@@ -328,22 +329,22 @@ class EredmenyWidget(QWidget):
             self.painter.setBrush(brush_black)
             self.painter.setPen(pen0)
             self.painter.drawRect(0, 0, 49, 49)
-            # self.painter.setPen(pen_red)
-            # self.painter.drawText(15, 20, str(self._player1_id) + " : " + str(self._player2_id))
+            self.painter.setPen(pen_red)
+            self.painter.drawText(15, 20, str(self._player1_id) + " : " + str(self._player2_id))
             # self.painter.drawText(20, 35, "X")
         elif self._player1_id == 0 or self._player2_id == 0:
             self.painter.setBrush(brush_csak1)
             self.painter.setPen(pen0)
             self.painter.drawRect(0, 0, 49, 49)
-            # self.painter.setPen(pen_blue)
-            # self.painter.drawText(15, 20, str(self._player1_id) + " : " + str(self._player2_id))
+            self.painter.setPen(pen_blue)
+            self.painter.drawText(15, 20, str(self._player1_id) + " : " + str(self._player2_id))
             # self.painter.drawText(20, 35, "X")
         else:
             self.painter.setBrush(brush_ready)
             self.painter.setPen(pen0)
             self.painter.drawRect(0, 0, 49, 49)
-            # self.painter.setPen(pen_black)
-            # self.painter.drawText(15, 20, str(self._player1_id) + " : " + str(self._player2_id))
+            self.painter.setPen(pen_black)
+            self.painter.drawText(15, 20, str(self._player1_id) + " : " + str(self._player2_id))
         self.painter.end()
 
 
@@ -430,6 +431,11 @@ class GroupMemberWidget(QWidget):
 
     def _set_player_id(self, number):
         self._player_id = number
+        self.update()
+
+    def _set_player_name(self, name):
+        self._player_name = str(name)
+        self.update()
     # todo a beállításnál ez legyen használva
     def _set_csoport_number(self, number):
         self._csoport_number = number
@@ -460,7 +466,7 @@ class GroupMemberWidget(QWidget):
         self.painter.setFont(font)
         self.painter.setPen(pen)
         self.painter.drawText(5, 30, str(self._csoport_sor + 1))
-        self.painter.drawText(20, 30, self._player_name)
+        self.painter.drawText(20, 30, self._player_name + str(self._player_id))
         self.painter.end()
 
     def dragEnterEvent(self, event):

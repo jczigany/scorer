@@ -1,6 +1,6 @@
 from PySide2.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, QGridLayout, QScrollArea, QListWidget, \
     QListWidgetItem, QPushButton, QDialog, QLabel, QMessageBox, QComboBox, QSpacerItem, QSizePolicy, QMenu
-from PySide2.QtGui import QPainter, QPen, QBrush, QColor, QPixmap, QDrag
+from PySide2.QtGui import QPainter, QPen, QBrush, QColor, QPixmap, QDrag, QFont
 from PySide2.QtCore import Qt, QMimeData, QDataStream, QIODevice, QByteArray
 from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
 import sys
@@ -19,9 +19,6 @@ if not db.open():
     )
     sys.exit(1)
 
-# torna_id = 8889
-# csoportok_szama = 0  # todo torna_settings-ből lekérni a 'csoportok_szama' ahol a torna_id a megadott
-# sorok_szama = 0 # todo torna_settings-ből lekérni a 'fo_per_csoport' ahol a torna_id a megadott
 # csoport_tabla = [6, 5, 5, 6] # todo ez sem a settings-ben, sem a torna_tablakban nincs rögzítve(a torna_match tartalmazza, ott viszont a csoport száma nincs
 
 
@@ -29,7 +26,7 @@ class TornaStatuszWindow(QDialog):
     def __init__(self, parent=None):
         super(TornaStatuszWindow, self).__init__(parent)
         self.setWindowTitle("Torna állása")
-        self.setMinimumHeight(650)
+        self.setMinimumHeight(720)
         # self.setMinimumWidth(700)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.hatter = QVBoxLayout()
@@ -94,42 +91,6 @@ class TornaStatuszWindow(QDialog):
 
         self.create_widgets()
         self.set_layout()
-
-    def get_params(self):
-        pass
-        # query = QSqlQuery(f"select * from torna_settings where torna_id={self.torna_id}")
-        # query.exec_()
-        # query.first()
-        # self.csoportok_szama = query.value(3)
-        # self.sorok_szama = query.value(4)
-        # self.nyereshez_kell = query.value(8)
-        # self.pont_gyozelem = query.value(11)
-        # self.pont_vereseg = query.value(13)
-        # # print("nyeréshez kell: ", self.nyereshez_kell)
-        # self.tablak = []
-        # for cs in range(self.csoportok_szama):
-        #     tablasor = []
-        #     for sor in range(self.sorok_szama):
-        #         tablasor.append(0)
-        #     self.tablak.append(tablasor)
-        # query2 = QSqlQuery(f"select * from torna_tablak where torna_id={torna_id}")
-        # query2.exec_()
-        # while query2.next():
-        #     self.tablak[query2.value(2)][query2.value(3)] = query2.value(1)
-        # self.nevek = []
-        # for cs in range(self.csoportok_szama):
-        #     neveksor = []
-        #     for sor in range(self.sorok_szama):
-        #         neveksor.append("")
-        #     self.nevek.append(neveksor)
-        # query2 = QSqlQuery(f"select player_id, player_name from torna_resztvevok where torna_id={torna_id}")
-        # query2.exec_()
-        # while query2.next():
-        #     for x in range(self.csoportok_szama):
-        #         for y in range(self.sorok_szama):
-        #             if query2.value(0) == self.tablak[x][y]:
-        #                 self.nevek[x][y] = query2.value(1)
-        # print(self.tablak, self.nevek)
 
     def create_widgets(self):
         # GroupMemberWidget-ek
@@ -240,7 +201,7 @@ class TornaStatuszWindow(QDialog):
         scroll = QScrollArea()
         scroll.setWidget(groups)
         scroll.setFixedWidth(((self.sorok_szama + 5) * 50) + 220)
-        scroll.setFixedHeight(740)
+        scroll.setFixedHeight(680)
 
         self.main_layout.addWidget(scroll)
         self.main_layout.addLayout(lista_layout)
@@ -296,6 +257,14 @@ class TornaStatuszWindow(QDialog):
                     if self.eredmenyek[x][y][z]._get_leg2() == self.nyereshez_kell:
                         self.eredmenyek[x][y][z]._set_pontszam(int(self.pont_vereseg))
                         self.eredmenyek[x][y][z].update_osszes_pont()
+        # helyezések
+        helyezesek = []
+        for cs in range(self.csoportok_szama):
+            helyezes_oszlop = []
+            for oszlop in range(self.sorok_szama):
+                # self.szum_eredmenyek[self._csoport_number][4][self._csoport_sor].
+                self.szum_eredmenyek[cs][4][oszlop]._set_ertek(3)
+
 
 class SzumWidget(QWidget):
     def __init__(self, parent=None):
@@ -367,20 +336,13 @@ class EredmenyWidget(QWidget):
                 match_id = (10000 * self.parent.torna_id) + (100 * self._player1_id) + self._player2_id
             elif self._csoport_sor > self._csoport_oszlop:
                 match_id = (10000 * self.parent.torna_id) + (100 * self._player2_id) + self._player1_id
-            print("match_id: ", match_id, "player1: ", self._player1_id, self.parent.torna_id, "hány leg", self.parent.nyereshez_kell)
+            # print("match_id: ", match_id, "player1: ", self._player1_id, self.parent.torna_id, "hány leg", self.parent.nyereshez_kell)
             winner_id = self._player1_id
             set_id = 1
             now = datetime.now().strftime("%Y-%m-%d %H.%M.%S")
-            # for i in range(1, self.parent.nyereshez_kell + 1):
-            #     query_string = f"insert into matches (match_id, leg_id, set_id, winner_id, timestamp) values ({match_id}, {i}, {set_id}, {winner_id}, '{now}')"
-            #     print(query_string)
-            #     query = QSqlQuery(query_string)
-            #     query.exec_()
 
             query3 = QSqlQuery(f"delete from matches where match_id={match_id} and winner_id={winner_id}", db=db)
             query3.exec_()
-            print("lekérés-1")
-            # query3.finish()
 
             insertDataQuery = QSqlQuery()
             insertDataQuery.prepare(
@@ -396,7 +358,6 @@ class EredmenyWidget(QWidget):
                 """
             )
             for x in range(1, self.parent.nyereshez_kell + 1):
-                # for i in range(len(match_rekords[x])):
                 insertDataQuery.addBindValue(match_id)
                 insertDataQuery.addBindValue(x)
                 insertDataQuery.addBindValue(1)
@@ -406,8 +367,6 @@ class EredmenyWidget(QWidget):
 
             query2 = QSqlQuery(f"update torna_match set match_status=2 where match_id={match_id}", db=db)
             query2.exec_()
-            print("lekérés-2")
-            # query2.finish()
 
     def update_osszes_pont(self):
         self.parent.szum_eredmenyek[self._csoport_number][3][self._csoport_sor]._set_ertek(0)
@@ -505,7 +464,7 @@ class EredmenyWidget(QWidget):
             self.painter.setBrush(brush_black)
             self.painter.setPen(pen0)
             self.painter.drawRect(0, 0, 49, 49)
-            self.painter.setPen(pen_red)
+            # self.painter.setPen(pen_red)
             # self.painter.drawText(2, 10, str(self._player1_id))
             # self.painter.drawText(2, 20, str(self._player2_id))
             # self.painter.drawText(20, 35, "X")
@@ -513,10 +472,10 @@ class EredmenyWidget(QWidget):
             self.painter.setBrush(brush_csak1)
             self.painter.setPen(pen0)
             self.painter.drawRect(0, 0, 49, 49)
-            self.painter.setPen(pen_blue)
-            self.painter.drawText(2, 10, str(self._player1_id))
-            self.painter.drawText(2, 20, str(self._player2_id))
-            self.painter.drawText(25, 30, "X")
+            # self.painter.setPen(pen_blue)
+            # self.painter.drawText(2, 10, str(self._player1_id))
+            # self.painter.drawText(2, 20, str(self._player2_id))
+            # self.painter.drawText(25, 30, "X")
         else:
             if self._pontszam >= 0:
                 self.painter.setBrush(brush_end)
@@ -576,8 +535,13 @@ class GroupMemberWidget(QWidget):
         pen = self.painter.pen()
         self.painter.setPen(pen0)
         self.painter.drawRect(0, 0, 199, 49)
+        font = QFont("Verdana, 20")
+        font.setBold(True)
+        self.painter.setFont(font)
         self.painter.setPen(pen)
-        self.painter.drawText(20, 35, str(self._player_id) + "   " + str(self._csoport_sor + 1) + "    " + self._player_name)
+        self.painter.drawText(5, 30, str(self._csoport_sor + 1))
+        self.painter.drawText(20, 30, self._player_name)
+        # self.painter.drawText(20, 35, str(self._player_id) + "   " + str(self._csoport_sor + 1) + "    " + self._player_name)
         self.painter.end()
 
 if __name__ == '__main__':

@@ -79,7 +79,7 @@ class OrgAppWindows(QMainWindow):
 
     @Slot()
     def torna_settings2(self):
-        self.torna_settings_window = TornaSettingsDialog(self, 8889) # todo ezt majd az aktív tornák közül kell kiválasztani
+        self.torna_settings_window = TornaSettingsDialog(self, 0) # todo ezt majd az aktív tornák közül kell kiválasztani
         self.torna_settings_window.show()
 
     @Slot()
@@ -94,9 +94,8 @@ class OrgAppWindows(QMainWindow):
 
     @Slot()
     def torna_status(self):
-        self.torna_status_window = TornaStatuszWindow(self) # todo ezt majd az aktív tornák közül kell kiválasztani
+        self.torna_status_window = TornaStatuszWindow(self)
         self.torna_status_window.show()
-        # pass
 
 if __name__ == '__main__':
     app = QApplication([])

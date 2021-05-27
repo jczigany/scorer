@@ -1,33 +1,10 @@
 import sys
 
 from PySide2.QtWidgets import QApplication, QMessageBox, QDialog, QDialogButtonBox, QLabel, QLineEdit, QCheckBox, \
-    QPushButton, QVBoxLayout, QHBoxLayout, QRadioButton, QSpinBox, QCompleter
+    QPushButton, QVBoxLayout, QHBoxLayout, QRadioButton, QSpinBox, QCompleter, QComboBox
 from PySide2.QtCore import *
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
 import random
-
-"""
-When a QSqlDataBase is created using the addDatabase() method then the names passed through the connectionName 
-parameter are stored in a dictionary where the key takes that value, if that parameter is not passed 
-then "qt_sql_default_connection" is used causing the creation of the Second database you get a duplicate in the 
-dictionary so Qt issues that warning. A possible solution is to pass it a different name (not tested):
-
-def connectDb(database_name, connection_name):
-    SERVER_NAME = "COMPUTER\\SQLEXPRESS"
-    DATABASE_NAME = database_name
-    connString = (
-        f"DRIVER={{SQL Server}};" f"SERVER={SERVER_NAME};" f"DATABASE={DATABASE_NAME}"
-    )
-    db = QtSql.QSqlDatabase.addDatabase("QSQLITE", connection_name)
-    db.setDatabaseName(connString)
-    if not db.open():
-        print(db.lastError().text())
-    return db
-
-db1 = connectDb("Database1", "connection_1")
-db2 = connectDb("Database2", "connection_2")
-
-"""
 
 db1 = QSqlDatabase.addDatabase('QMYSQL', 'database1')
 db1.setHostName('192.168.68.22')
@@ -49,7 +26,6 @@ if not db.open():
     sys.exit(1)
 
 
-
 class CustomSpinBox(QSpinBox):
     def __init__(self, min, max):
         super(CustomSpinBox, self).__init__()
@@ -64,18 +40,23 @@ class TornaSettingsDialog(QDialog):
         self.setModal(True)
         self.setWindowTitle("Verseny beállítások")
         self.torna_id = torna_id
+        self.main_layout = QVBoxLayout()
+        self.setLayout(self.main_layout)
+        if self.torna_id is not None:
+            self.create_torna_selection()
+
         self.set_layouts()
         self.add_variables()
         self.alapertekek()
         self.add_buttonbox()
 
     def set_layouts(self):
-        self.main_layout = QHBoxLayout()
-        self.setLayout(self.main_layout)
+        self.tartalom_layout = QHBoxLayout()
+        self.main_layout.addLayout(self.tartalom_layout)
         self.layout = QVBoxLayout()
         self.gomb_layout = QVBoxLayout()
-        self.main_layout.addLayout(self.layout)
-        self.main_layout.addLayout(self.gomb_layout)
+        self.tartalom_layout.addLayout(self.layout)
+        self.tartalom_layout.addLayout(self.gomb_layout)
 
     def add_variables(self):
         self.layout.addWidget(QLabel("A verseny megnevezése:"))
@@ -153,6 +134,27 @@ class TornaSettingsDialog(QDialog):
         self.leg_num_3place.setDisabled(True)
         self.layout.addWidget(self.leg_num_3place)
 
+    def create_torna_selection(self):
+        self.tournaments = QComboBox()
+        self.tournaments.setModelColumn(0)
+        self.tournaments.currentIndexChanged.connect(self.torna_valasztas)
+        self.main_layout.addWidget(self.tournaments)
+        self.load_torna()
+
+    def load_torna(self):
+        torna = QSqlQueryModel()
+        query = QSqlQuery("select * from torna_settings where aktiv=2")
+        torna.setQuery(query)
+        if torna.record(0).value(0):
+            for i in range(torna.rowCount()):
+                self.tournaments.addItem(torna.record(i).value(1), torna.record(i).value(0)) # a value(0) a torna_id
+        else:
+            print("Nincs aktív torna")
+
+    def torna_valasztas(self, i):
+        self.torna_id = self.tournaments.itemData(i)
+        self.alapertekek()
+
     def alapertekek(self):
         if not self.torna_id:
             self.torna_name.clear()
@@ -180,7 +182,7 @@ class TornaSettingsDialog(QDialog):
             model.setTable("torna_settings")
             model.setFilter(f"torna_id={self.torna_id}")
             model.select()
-            print(model.record(0))
+            # print(model.record(0))
             self.torna_name.setText(model.record(0).value(1))
             self.is_roundrobin.setChecked(model.record(0).value(2))
             self.csoport_number.setValue(model.record(0).value(3))
@@ -207,12 +209,12 @@ class TornaSettingsDialog(QDialog):
         self.buttonbox.setOrientation(Qt.Vertical)
         self.buttonbox.addButton("Mentés", QDialogButtonBox.ActionRole)
         self.buttonbox.addButton("Alaphelyzet", QDialogButtonBox.ActionRole)
-        self.gomb_members = QPushButton("Résztvevők")
-        self.gomb_members.setDisabled(True)
-        self.buttonbox.addButton(self.gomb_members, QDialogButtonBox.ActionRole)
-        self.gomb_tabella = QPushButton("Tabella")
-        self.gomb_tabella.setDisabled(True)
-        self.buttonbox.addButton(self.gomb_tabella, QDialogButtonBox.ActionRole)
+        # self.gomb_members = QPushButton("Résztvevők")
+        # self.gomb_members.setDisabled(True)
+        # self.buttonbox.addButton(self.gomb_members, QDialogButtonBox.ActionRole)
+        # self.gomb_tabella = QPushButton("Tabella")
+        # self.gomb_tabella.setDisabled(True)
+        # self.buttonbox.addButton(self.gomb_tabella, QDialogButtonBox.ActionRole)
         self.buttonbox.addButton("Mégsem", QDialogButtonBox.ActionRole)
         self.buttonbox.clicked.connect(self.buttonbox_click)
         self.gomb_layout.addWidget(self.buttonbox)
@@ -268,10 +270,10 @@ class TornaSettingsDialog(QDialog):
             self.save()
         elif b.text() == "Alaphelyzet":
             self.alapertekek()
-        elif b.text() == "Résztvevők":
-            self.members()
-        elif b.text() == "Tabella":
-            self.tabella()
+        # elif b.text() == "Résztvevők":
+        #     self.members()
+        # elif b.text() == "Tabella":
+        #     self.tabella()
         elif b.text() == "Mégsem":
             self.reject()
         else:
@@ -282,6 +284,7 @@ class TornaSettingsDialog(QDialog):
             self.insert_torna_settings()
         else:
             self.update_torna_settings()
+        self.close()
 
     def insert_torna_settings(self):
         van_ilyen_nev = False
@@ -413,21 +416,21 @@ class TornaSettingsDialog(QDialog):
 
         for i in range(torna_settings_model.rowCount()):
             if torna_settings_model.record(i).value(0) == self.torna_id:
-                print(torna_settings_model.record(i).value(0), ":", i)
+                # print(torna_settings_model.record(i).value(0), ":", i)
                 record_number = i
-        print(record)
+        # print(record)
         if torna_settings_model.setRecord(record_number, record):
             torna_settings_model.submitAll()
         else:
             db.rollback()
 
-    def members(self):
-        # todo Itt kell a verseny résztvevőit öszerakni
-        pass
-
-    def tabella(self):
-        # todo Itt kell a sorsolást, tabella összeállítást megcsinálni
-        pass
+    # def members(self):
+    #     # todo Itt kell a verseny résztvevőit öszerakni
+    #     pass
+    #
+    # def tabella(self):
+    #     # todo Itt kell a sorsolást, tabella összeállítást megcsinálni
+    #     pass
 
     def accept(self):
         # todo Ez majd csak a bezáráshoz kell
