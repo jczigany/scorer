@@ -1,28 +1,57 @@
-from PySide2.QtWidgets import QMessageBox, QDialog, QDialogButtonBox, QLabel, QLineEdit, QCheckBox, QVBoxLayout, QHBoxLayout, QApplication, QRadioButton, QSpinBox, QCompleter
+"""!
+Az új játék beállításainak megadása. Adatbázisból dolgozik (local: sqlite, vagy remote:mysql)
+A játékosok neve db-ből (auto completer), ha újat írunk be, azt letárolja
+A beállított paramétereket átadja a játéablaknak inicializálásra és bezárja magát.
+Ha megszakítjuk, akkor a játékablak is bezáródik
+"""
+from PySide2.QtWidgets import QMessageBox, QDialog, QDialogButtonBox, QLabel, QLineEdit, QCheckBox, \
+    QVBoxLayout, QHBoxLayout, QApplication, QRadioButton, QSpinBox, QCompleter
 from PySide2.QtCore import *
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
-import random
-
-db = QSqlDatabase.addDatabase('QMYSQL')
-db.setHostName('192.168.68.22')
-db.setDatabaseName('cida')
-db.setUserName('cida')
-db.setPassword('cida')
-
-# db = QSqlDatabase.addDatabase('QSQLITE')
-# db.setDatabaseName('scorer.db3')
+import random, sys
 
 
 class GameSettingsDialog(QDialog):
+    """!
+    Maga a settings-ablak (modal)
+    - Alapparaméterek beállítása
+    - Adatbázis-kapcsolat létrehozása
+    - Widget-ek, Layout-ok létrehozása
+    """
     def __init__(self, parent = None):
         super(GameSettingsDialog, self).__init__(parent)
         self.parent = parent
         self.setModal(True)
         self.setWindowTitle("Game settings")
+        # self.db_connect()
+
         self.create_widgets()
         self.set_layouts()
 
+    # def db_connect(self):
+    #     """
+    #     Adatbázis-kapcsolat definiálása, kapcsolat létrehozása
+    #     :return:
+    #     """
+    #     self.db = QSqlDatabase.addDatabase('QMYSQL')
+    #     self.db.setHostName('192.168.68.22')
+    #     self.db.setDatabaseName('cida')
+    #     self.db.setUserName('cida')
+    #     self.db.setPassword('cida')
+    #     if not self.db.open():
+    #         QMessageBox.critical(
+    #             None,
+    #             "App Name - Error!",
+    #             "Database Error: %s" % self.db.lastError().text(),
+    #         )
+    #         sys.exit(1)
+
+    ## Az ablakon szereplő widget-ek létrehozása
     def create_widgets(self):
+        """!
+        A játékosnevek completer-el kiegészítve. Az adatokat a get_player_name() tölti be db-ből
+        :return:
+        """
         self.label_player1 = QLabel("Player 1")
         self.input_player1_name = QLineEdit()
         self.input_player1_name.setPlaceholderText("Player 1")
@@ -66,7 +95,7 @@ class GameSettingsDialog(QDialog):
         self.handi2.setValue(0)
         self.handi2.setMinimum(-100)
         self.handi2.setMaximum(100)
-
+        ## Az ablak gombjai: OK, Cancel, Reset
         self.buttonbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel | QDialogButtonBox.Reset)
         self.buttonbox.clicked.connect(self.buttonbox_click)
 
@@ -114,19 +143,37 @@ class GameSettingsDialog(QDialog):
         self.layout.addLayout(self.kontener_handi)
         self.layout.addWidget(self.buttonbox)
 
+    ## A név completer-ek feltöltése
     def get_player_name(self):
+        """!
+        A players táblából kiválasztjuk a játékosneveket, akiknek a tipusa 'local' (nem tornát játszunk)
+        és a a státuszuk 'aktiv' (nem törölt) és ezt beállítjuk a completer model-jének
+        :return:
+        """
         player_name_model = QSqlQueryModel()
-        query = QSqlQuery("SELECT player_name  FROM players where type='local' and aktiv=1 order by player_name", db=db)
+        query = QSqlQuery("SELECT player_name  FROM players where type='local' and aktiv=1 order by player_name")
         player_name_model.setQuery(query)
         self.player1_completer.setModel(player_name_model)
         self.player2_completer.setModel(player_name_model)
 
+    ## A buttonbox click-jének lekezelése
     def buttonbox_click(self, b):
+        """!
+        Gomg lenyomások kezelése
+        :param b: Melyik gomb lett megnyomva
+        :return:
+        """
+        ## Ha az OK
         if b.text() == "OK":
+            ## Akkor lefut az accept
             self.accept()
+        ## Ha Cancel
         elif b.text() == "Cancel":
+            ## bezárunk mindent
             self.reject()
+        ## Reset
         else:
+            ## Alapértékek visszaállítása
             self.alapertekek()
 
     def alapertekek(self):
@@ -172,7 +219,7 @@ class GameSettingsDialog(QDialog):
             player1 = "Player 1"
         else:
             player1_id_model = QSqlQueryModel()
-            query1 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player1}' and type='local' and aktiv=1", db=db)
+            query1 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player1}' and type='local' and aktiv=1")
             player1_id_model.setQuery(query1)
             # todo megnézni, hogy sima query.exec_ -el hogyan működik, lehet-e ellenőrizni, hogy üres vagy nem
             if player1_id_model.record(0).value(0):
@@ -189,8 +236,8 @@ class GameSettingsDialog(QDialog):
                 if player_model1.insertRecord(-1, rec_play1):
                     player_model1.submitAll()
                 else:
-                    db.rollback()
-                query1 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player1}' and type='local' and aktiv=1", db=db)
+                    self.parent.db.rollback()
+                query1 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player1}' and type='local' and aktiv=1")
                 player1_id_model.setQuery(query1)
                 # todo megnézni, hogy sima query.exec_ -el hogyan működik, lehet-e ellenőrizni, hogy üres vagy nem
                 p1_id = int(player1_id_model.record(0).value(0))
@@ -200,7 +247,7 @@ class GameSettingsDialog(QDialog):
             player2 = "Player 2"
         else:
             player2_id_model = QSqlQueryModel()
-            query2 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player2}' and type='local' and aktiv=1", db=db)
+            query2 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player2}' and type='local' and aktiv=1")
             player2_id_model.setQuery(query2)
             # todo megnézni, hogy sima query.exec_ -el hogyan működik, lehet-e ellenőrizni, hogy üres vagy nem
             if player2_id_model.record(0).value(0):
@@ -216,8 +263,8 @@ class GameSettingsDialog(QDialog):
                 if player_model2.insertRecord(-1, rec_play2):
                     player_model2.submitAll()
                 else:
-                    db.rollback()
-                query2 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player2}' and type='local' and aktiv=1", db=db)
+                    self.parent.db.rollback()
+                query2 = QSqlQuery(f"SELECT player_id FROM players where player_name = '{player2}' and type='local' and aktiv=1")
                 player2_id_model.setQuery(query2)
                 # todo megnézni, hogy sima query.exec_ -el hogyan működik, lehet-e ellenőrizni, hogy üres vagy nem
                 p2_id = int(player2_id_model.record(0).value(0))
@@ -240,7 +287,7 @@ class GameSettingsDialog(QDialog):
         if match_model.insertRecord(-1, record):
             match_model.submitAll()
         else:
-            db.rollback()
+            self.parent.db.rollback()
         params.append(player1)
         params.append(player2)
         params.append(m_id)
@@ -254,8 +301,10 @@ class GameSettingsDialog(QDialog):
         params.append(bestof)
         self.parent.new_game_window.params = params
         self.parent.new_game_window.refresh()
+        self.parent.db.close()
         super().accept()
 
     def reject(self):
+        self.parent.db.close()
         self.parent.new_game_window.close()
         super().reject()

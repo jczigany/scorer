@@ -1,11 +1,11 @@
-from PySide2.QtWidgets import QListWidget, QLabel, QDialog, QApplication, QScrollArea, QVBoxLayout, QGridLayout, QWidget
+from PySide2.QtWidgets import QListWidget, QListWidgetItem, QLabel, QDialog, QApplication, QScrollArea, QVBoxLayout, QGridLayout, QWidget
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlRelationalTableModel
 from PySide2.QtGui import QPainter, QPen, QBrush, QColor, QFont
 from PySide2.QtCore import *
 import sys
 
-db = QSqlDatabase.addDatabase('QSQLITE')
-db.setDatabaseName('scorer.db3')
+# db = QSqlDatabase.addDatabase('QSQLITE')
+# db.setDatabaseName('scorer.db3')
 # Ha a progiból indul, nem kell majd
 # if not db.open():
 #     QMessageBox.critical(
@@ -44,21 +44,27 @@ class MatchStatWindow(QDialog):
         self.match_valasztas()
 
     def match_valasztas(self):
-        matches = QSqlRelationalTableModel(db=db)
-        matches.setTable("match_settings")
-        matches.setSort(8, Qt.DescendingOrder)
-        matches.select()
+        matches = QSqlQueryModel()
+        matches_query = QSqlQuery("SELECT a.match_id, c.player_name as nev1, d.player_name as nev2, a.variant, a.sets, \
+                          a.legsperset, a.hc1, a.hc2, a.timestamp FROM match_settings a, players c, players d \
+                            WHERE a.player1_id=c.player_id and a.player2_id=d.player_id ORDER BY `a`.timestamp DESC")
+        matches.setQuery(matches_query)
         self.merkozesek.clear()
-        for i in  range(matches.rowCount()):
-            self.merkozesek.addItem(str(matches.record(i).value(1)) + "\t" +
-                                    str(matches.record(i).value(2)) + "\t" +
+        fejlec = QListWidgetItem(f'Név1\tNév2\tPont1\tPont2\tLegs\tSets\tDátum\tMeccs_ID')
+        betuk = fejlec.font()
+        betuk.setBold(True)
+        fejlec.setFont(betuk)
+        self.merkozesek.addItem(fejlec)
+        for i in range(matches.rowCount()):
+            self.merkozesek.addItem(matches.record(i).value(1) + "\t" +
+                                    matches.record(i).value(2) + "\t" +
                                     str(int(matches.record(i).value(3)) + matches.record(i).value(6)) + "\t" +
                                     str(int(matches.record(i).value(3)) + matches.record(i).value(7)) + "\t" +
                                     str(matches.record(i).value(4)) + "\t" +
                                     str(matches.record(i).value(5)) + "\t" +
-                                    str(matches.record(i).value(8))[:16] + "\t" +
+                                    str(matches.record(i).value(8).toString('yyyy MM dd')) + "\t" +
                                     str(matches.record(i).value(0))
-            )
+                                    )
 
     def stat_game(self):
         # Az átvett adatok:

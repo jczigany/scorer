@@ -6,11 +6,31 @@ from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableMode
 
 
 # db = QSqlDatabase.addDatabase('QMYSQL')
-# db.setHostName('localhost')
+# db.setHostName('192.168.68.22')
 # db.setDatabaseName('cida')
 # db.setUserName('cida')
 # db.setPassword('cida')
 # formátum ******    num1: [ [], [], ....],      ********
+
+# def db_connect():
+#     """
+#     Adatbázis-kapcsolat definiálása, kapcsolat létrehozása
+#     :return:
+#     """
+#     db = QSqlDatabase.addDatabase('QMYSQL')
+#     db.setHostName('192.168.68.22')
+#     db.setDatabaseName('cida')
+#     db.setUserName('cida')
+#     db.setPassword('cida')
+#     if not db.open():
+#         QMessageBox.critical(
+#             None,
+#             "App Name - Error!",
+#             "Database Error: %s" % db.lastError().text(),
+#         )
+#         sys.exit(1)
+#     return db
+
 kiszallo = {
     170: [['T20', 'T20', 'DB'],],
     167: [['T20', 'T19', 'DB'],],
@@ -234,6 +254,7 @@ class CustomQLineEdit(QLineEdit):
             QLineEdit.keyPressEvent(self, event)
 
     def visszavon(self):
+        # db = db_connect()
         # 1.a a dobas táblából az utolsó rekordot kiolvasni, \
         # dobás értékét + round_number-t, player_id-t megállapítani (match_id, set_id, leg_id, last)
         query = QSqlQuery(f"select * from dobas where match_id={self.parent.match_id} order by timestamp desc limit 1")
@@ -260,7 +281,7 @@ class CustomQLineEdit(QLineEdit):
                 self.parent.pont1.setStyleSheet("background-color: lightgray; border-radius: 5px; font-size: 90px")
                 self.parent.pont2.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
                 # 5. dobas táblából törölni a kiválasztott rekordot
-                query1 = QSqlQuery(f"delete from dobas where match_id = {self.parent.match_id} and set_id = {self.parent.set_id} and leg_id = {self.parent.leg_id} and round_number = {kor} and player_id = {jatekos}", db=db)
+                query1 = QSqlQuery(f"delete from dobas where match_id = {self.parent.match_id} and set_id = {self.parent.set_id} and leg_id = {self.parent.leg_id} and round_number = {kor} and player_id = {jatekos}")
                 query1.exec_()
             else:
                 pass
@@ -283,10 +304,11 @@ class CustomQLineEdit(QLineEdit):
                 self.parent.pont1.setStyleSheet("background-color: lightgreen; border-radius: 5px; font-size: 90px")
                 # 5. dobas táblából törölni a kiválasztott rekordot
                 query1 = QSqlQuery(
-                    f"delete from dobas where match_id = {self.parent.match_id} and set_id = {self.parent.set_id} and leg_id = {self.parent.leg_id} and round_number = {kor} and player_id = {jatekos}",db=db)
+                    f"delete from dobas where match_id = {self.parent.match_id} and set_id = {self.parent.set_id} and leg_id = {self.parent.leg_id} and round_number = {kor} and player_id = {jatekos}")
                 query1.exec_()
             else:
                 pass
+        # db.close()
 
     def change_starter(self):
         if (int(self.parent.pont1.text()) ==  int(self.parent.params[5]) + self.parent.params[8]) and (int(self.parent.pont2.text()) ==  int(self.parent.params[5]) + self.parent.params[9]) and (self.parent.leg_id == 1) and (self.parent.set_id == 1):
@@ -361,6 +383,11 @@ class GameWindowDialog(QDialog):
         self.params = []
         self.background_image = QImage("images/gdc_logo_uj.png")
         self.image_rect = QRect()
+
+        # Csak teszt-re
+        self.player1_id = 5
+        self.player2_id = 6
+        self.match_id = 98765432
 
         self.set_layouts()
         self.alapertekek()
@@ -707,7 +734,7 @@ class GameWindowDialog(QDialog):
         if dobas_model.insertRecord(-1, record):
             dobas_model.submitAll()
         else:
-            db.rollback()
+            self.parent.db.rollback()
 
     def write_leg(self, winner):
         """
@@ -728,7 +755,7 @@ class GameWindowDialog(QDialog):
         if leg_model.insertRecord(-1, record):
             leg_model.submitAll()
         else:
-            db.rollback()
+            self.parent.db.rollback()
         # todo: nem befejettek esetén előzmények törlése????
 
     def kovetkezo_jatekos(self, write_score, nyil=3):
@@ -1200,6 +1227,6 @@ class GameWindowDialog(QDialog):
 
 if __name__ == '__main__':
     app = QApplication([])
-    win = GameWindowDialog()
+    win = GameWindowDialog(None)
     win.show()
     app.exec_()
