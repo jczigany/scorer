@@ -45,6 +45,9 @@ class MatchStatWindow(QDialog):
 
     def match_valasztas(self):
         matches = QSqlQueryModel()
+        # todo: Itt most csak a players táblát nézzük. Kell még torna_resztvevőkkel is kalkulálni, hogy azok a mérkőzések
+        # todo:  is visszanézhetők legyenek
+        # todo: Ezt a get_adatok() -nál is figyelni kell
         matches_query = QSqlQuery("SELECT a.match_id, c.player_name as nev1, d.player_name as nev2, a.variant, a.sets, \
                           a.legsperset, a.hc1, a.hc2, a.timestamp FROM match_settings a, players c, players d \
                             WHERE a.player1_id=c.player_id and a.player2_id=d.player_id ORDER BY `a`.timestamp DESC")
@@ -85,7 +88,7 @@ class MatchStatWindow(QDialog):
                 sl1_model = QSqlQueryModel()
                 p1_data_list = []
                 p1_data_list.append(self.adatok[4])   # start_score1
-                sl1_query = QSqlQuery(f"select * from dobas where match_id ={self.adatok[6]} and set_id={s} and leg_id={l} and player_id='{self.adatok[0]}'", db=db)
+                sl1_query = QSqlQuery(f"select * from dobas where match_id ={self.adatok[6]} and set_id={s} and leg_id={l} and player_id='{self.adatok[0]}'")
                 sl1_model.setQuery(sl1_query)
                 for i in range(sl1_model.rowCount()):
                     # Itt a model már tartalmazza a p1 összes dobását az adott leg-ben.
@@ -98,7 +101,7 @@ class MatchStatWindow(QDialog):
                 sl2_model = QSqlQueryModel()
                 p2_data_list = []
                 p2_data_list.append(self.adatok[5])  # start_score2
-                sl2_query = QSqlQuery(f"select * from dobas where match_id ={self.adatok[6]} and set_id={s} and leg_id={l} and player_id='{self.adatok[2]}'", db=db)
+                sl2_query = QSqlQuery(f"select * from dobas where match_id ={self.adatok[6]} and set_id={s} and leg_id={l} and player_id='{self.adatok[2]}'")
                 sl2_model.setQuery(sl2_query)
                 for j in range(sl2_model.rowCount()):
                     p2_data_row = []
@@ -109,7 +112,8 @@ class MatchStatWindow(QDialog):
                 sor += 1
 
     def get_adatok(self, para):
-        print(para)
+        # todo: Lásd a match_valasztas()-nál a megjegyzést
+        # print(para)
         # self.adatok[0]  : p1_id
         # self.adatok[1]  : name1
         # self.adatok[2]  : p2_id
@@ -122,21 +126,22 @@ class MatchStatWindow(QDialog):
         # self.adatok[9]  : dátum
 
         self.adatok = []
-        name1_id = int(para[0])
-        self.adatok.append(name1_id)
-        query_name1 = QSqlQuery(f"select player_name from players where player_id={name1_id}", db=db)
-        query_name1.exec_()
-        while query_name1.next():
-            name1 = query_name1.value(0)
-        self.adatok.append(name1)
-        name2_id = int(para[1])
-        self.adatok.append(name2_id)
-        query_name2 = QSqlQuery(f"select player_name from players where player_id={name2_id}", db=db)
-        query_name2.exec_()
-        while query_name2.next():
-            name2 = query_name2.value(0)
-        self.adatok.append(name2)
+        # name1_id = int(para[0])
+        query_id1 = QSqlQuery(f"select player_id from players where player_name='{para[0]}'")
+        query_id1.exec_()
+        while query_id1.next():
+            id1 = query_id1.value(0)
+        self.adatok.append(id1)
+        self.adatok.append(para[0])
 
+        # name2_id = int(para[1])
+        # self.adatok.append(name2_id)
+        query_id2 = QSqlQuery(f"select player_id from players where player_name='{para[1]}'")
+        query_id2.exec_()
+        while query_id2.next():
+            id2 = query_id2.value(0)
+        self.adatok.append(id2)
+        self.adatok.append(para[1])
         start_score1 = int(para[2])
         start_score2 = int(para[3])
         match = int(para[7])
@@ -150,24 +155,22 @@ class MatchStatWindow(QDialog):
         legs = []
         sets = 0
         query2 = QSqlQuery(
-            f"select max(set_id) as max_set from matches where match_id={match}", db=db)
+            f"select max(set_id) as max_set from matches where match_id={match}")
         query2.exec_()
         while query2.next():
             sets = int(query2.value(0))
-
         for i in range(1, sets + 1):
-            query = QSqlQuery(f"select max(leg_id) as max_leg from matches where match_id={match} and set_id={i}", db=db)
+            query = QSqlQuery(f"select max(leg_id) as max_leg from matches where match_id={match} and set_id={i}")
             query.exec_()
             while query.next():
                 legs.append(int(query.value(0)))
-                # sets.append(int(query.value(1)))
 
         self.adatok.append(legs)
         self.adatok.append(sets)
 
         datum = para[6][:16]
         self.adatok.append(datum)
-        print(self.adatok)
+        # print(self.adatok)
 
 
 class MatchSumWidget(QWidget):
@@ -191,7 +194,7 @@ class MatchSumWidget(QWidget):
         self.won2 = 0
         self.avg1 = self.avg2 = 0
         eredmenyek_model = QSqlQueryModel()
-        eredmenyek_query = QSqlQuery(f"select * from matches where match_id={match_id}", db=db)
+        eredmenyek_query = QSqlQuery(f"select * from matches where match_id={match_id}")
         eredmenyek_model.setQuery(eredmenyek_query)
         for x in range(1, self.data[8] + 1):
             l1 = l2 = 0
