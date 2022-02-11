@@ -6,24 +6,24 @@ from PySide2.QtCore import *
 from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
 import random
 
-db1 = QSqlDatabase.addDatabase('QMYSQL', 'database1')
-db1.setHostName('192.168.68.22')
-db1.setDatabaseName('cida')
-db1.setUserName('cida')
-db1.setPassword('cida')
+# db1 = QSqlDatabase.addDatabase('QMYSQL', 'database1')
+# db1.setHostName('192.168.68.22')
+# db1.setDatabaseName('cida')
+# db1.setUserName('cida')
+# db1.setPassword('cida')
 
 # db = QSqlDatabase.addDatabase('QSQLITE', 'database2')
 # db.setDatabaseName('scorer.db3')
-
-db = db1
-
-if not db.open():
-    QMessageBox.critical(
-        None,
-        "App Name - Error!",
-        "Database Error: %s" % db.lastError().text(),
-    )
-    sys.exit(1)
+#
+# db = db1
+#
+# if not db.open():
+#     QMessageBox.critical(
+#         None,
+#         "App Name - Error!",
+#         "Database Error: %s" % db.lastError().text(),
+#     )
+#     sys.exit(1)
 
 
 class CustomSpinBox(QSpinBox):
@@ -34,11 +34,12 @@ class CustomSpinBox(QSpinBox):
 
 
 class TornaSettingsDialog(QDialog):
-    def __init__(self, parent = None, torna_id = None):
+    def __init__(self, parent = None, db = None, torna_id = None):
         super(TornaSettingsDialog, self).__init__(parent)
         self.parent = parent
         self.setModal(True)
         self.setWindowTitle("Verseny beállítások")
+        self.db = db
         self.torna_id = torna_id
         self.main_layout = QVBoxLayout()
         self.setLayout(self.main_layout)
@@ -178,11 +179,12 @@ class TornaSettingsDialog(QDialog):
             self.is_3place.setChecked(False)
             self.leg_num_3place.setValue(4)
         else:
-            model = QSqlTableModel(db=db)
+            model = QSqlTableModel(db=self.db)
             model.setTable("torna_settings")
             model.setFilter(f"torna_id={self.torna_id}")
             model.select()
             # print(model.record(0))
+            # self.torna_name.clear()
             self.torna_name.setText(model.record(0).value(1))
             self.is_roundrobin.setChecked(model.record(0).value(2))
             self.csoport_number.setValue(model.record(0).value(3))
@@ -290,7 +292,7 @@ class TornaSettingsDialog(QDialog):
         van_ilyen_nev = False
         if len(self.torna_name.text()) != 0:
             torna_id_model = QSqlQueryModel()
-            query = QSqlQuery("select torna_id, torna_name from torna_settings", db=db)
+            query = QSqlQuery("select torna_id, torna_name from torna_settings", db=self.db)
             torna_id_model.setQuery(query)
             for i in range(torna_id_model.rowCount()):
                 if torna_id_model.record(i).value(1) == self.torna_name.text():
@@ -302,7 +304,7 @@ class TornaSettingsDialog(QDialog):
                     msg.exec_()
                     van_ilyen_nev = True
             if not van_ilyen_nev:
-                torna_settings_model = QSqlTableModel(db=db)  # !!!!!!! Ha több db van, akkor itt konkrétan meg kell adni
+                torna_settings_model = QSqlTableModel(db=self.db)  # !!!!!!! Ha több db van, akkor itt konkrétan meg kell adni
                 torna_settings_model.setTable("torna_settings")
                 record = torna_settings_model.record()
 
@@ -351,13 +353,13 @@ class TornaSettingsDialog(QDialog):
                 if torna_settings_model.insertRecord(-1, record):
                     torna_settings_model.submitAll()
                 else:
-                    db.rollback()
+                    self.db.rollback()
 
                 torna_id_model2 = QSqlQueryModel()
-                query2 = QSqlQuery(f"select torna_id from torna_settings where torna_name='{self.torna_name.text()}'", db=db)
+                query2 = QSqlQuery(f"select torna_id from torna_settings where torna_name='{self.torna_name.text()}'", db=self.db)
                 torna_id_model2.setQuery(query2)
                 self.torna_id = int(torna_id_model2.record(0).value(0))
-                self.gomb_members.setDisabled(False)
+                # self.gomb_members.setDisabled(False)
         else:
             msg = QMessageBox(self)
             msg.setStyleSheet("fonz-size: 20px")
@@ -367,7 +369,7 @@ class TornaSettingsDialog(QDialog):
             msg.exec_()
 
     def update_torna_settings(self):
-        torna_settings_model = QSqlTableModel(db=db)
+        torna_settings_model = QSqlTableModel(db=self.db)
         torna_settings_model.setTable("torna_settings")
         record = torna_settings_model.record()
         torna_settings_model.select()
@@ -422,7 +424,7 @@ class TornaSettingsDialog(QDialog):
         if torna_settings_model.setRecord(record_number, record):
             torna_settings_model.submitAll()
         else:
-            db.rollback()
+            self.db.rollback()
 
     # def members(self):
     #     # todo Itt kell a verseny résztvevőit öszerakni

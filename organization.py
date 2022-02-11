@@ -43,6 +43,19 @@ class OrgAppWindows(QMainWindow):
         super(OrgAppWindows, self).__init__()
         self.setWindowTitle("Tournament Organization powered by Jcigi")
         self.resize(1000,1000)
+        self.db = QSqlDatabase.addDatabase('QMYSQL')
+        self.db.setHostName('192.168.68.6')
+        self.db.setDatabaseName('cida')
+        self.db.setUserName('cida')
+        self.db.setPassword('cida')
+        if not self.db.open():
+            QMessageBox.critical(
+                None,
+                "App Name - Error!",
+                "Database Error: %s" % self.db.lastError().text(),
+            )
+            sys.exit(1)
+
         self.widget = QWidget()
         self.main_layout = QVBoxLayout()
         self.widget.setLayout(self.main_layout)
@@ -74,12 +87,12 @@ class OrgAppWindows(QMainWindow):
 
     @Slot()
     def torna_settings(self):
-        self.torna_settings_window = TornaSettingsDialog(self)
+        self.torna_settings_window = TornaSettingsDialog(self, self.db)
         self.torna_settings_window.show()
 
     @Slot()
     def torna_settings2(self):
-        self.torna_settings_window = TornaSettingsDialog(self, 0) # todo ezt majd az aktív tornák közül kell kiválasztani
+        self.torna_settings_window = TornaSettingsDialog(self, self.db, 0) # todo ezt majd az aktív tornák közül kell kiválasztani
         self.torna_settings_window.show()
 
     @Slot()

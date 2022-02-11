@@ -5,7 +5,7 @@ Alaphelyzetben offline módban is tud működni sqlite db-vel
 Képes MySql-t használni, így központilag vannak a játékosok, eredmények rögzítve
 Full kliens, így a versenyszervezésben mint végpont szerepel
 """
-from PySide2.QtWidgets import QMainWindow, QWidget, QApplication, QVBoxLayout
+from PySide2.QtWidgets import QMainWindow, QWidget, QApplication, QVBoxLayout, QMessageBox
 from PySide2.QtCore import *
 from PySide2.QtGui import QImage, QPainter
 # import os, sys
@@ -53,7 +53,7 @@ class AppWindows(QMainWindow):
         self.setWindowTitle("Darts Scorer powered by Jcigi")
         self.resize(400,400)
         self.db = QSqlDatabase.addDatabase('QMYSQL')
-        self.db.setHostName('192.168.68.22')
+        self.db.setHostName('192.168.68.6')
         self.db.setDatabaseName('cida')
         self.db.setUserName('cida')
         self.db.setPassword('cida')

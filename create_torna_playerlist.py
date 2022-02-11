@@ -4,22 +4,22 @@ from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlRelationa
 from PySide2.QtCore import *
 import configparser, os, sys
 
-db = QSqlDatabase.addDatabase('QMYSQL')
-db.setHostName('192.168.68.22')
-db.setDatabaseName('cida')
-db.setUserName('cida')
-db.setPassword('cida')
+# db = QSqlDatabase.addDatabase('QMYSQL')
+# db.setHostName('192.168.68.22')
+# db.setDatabaseName('cida')
+# db.setUserName('cida')
+# db.setPassword('cida')
 # # db = QSqlDatabase.addDatabase('QSQLITE')
 # # db.setDatabaseName('scorer.db3')
 config = configparser.ConfigParser()
 # # Ha a progiból indul, nem kell majd
-if not db.open():
-    QMessageBox.critical(
-        None,
-        "App Name - Error!",
-        "Database Error: %s" % db.lastError().text(),
-    )
-    sys.exit(1)
+# if not db.open():
+#     QMessageBox.critical(
+#         None,
+#         "App Name - Error!",
+#         "Database Error: %s" % db.lastError().text(),
+#     )
+#     sys.exit(1)
 
 
 class SelectPlayersWindow(QDialog):
