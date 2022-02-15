@@ -1,29 +1,27 @@
-from PySide2.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, QGridLayout, QScrollArea, QListWidget, \
+from PySide6.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, QGridLayout, QScrollArea, QListWidget, \
     QListWidgetItem, QPushButton, QDialog, QLabel, QMessageBox, QComboBox, QSpacerItem, QSizePolicy
-from PySide2.QtGui import QPainter, QPen, QBrush, QColor, QPixmap, QDrag, QFont
-from PySide2.QtCore import Qt, QMimeData, QDataStream, QIODevice, QByteArray
-from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
+from PySide6.QtGui import QPainter, QPen, QBrush, QColor, QPixmap, QDrag, QFont
+from PySide6.QtCore import Qt, QMimeData, QDataStream, QIODevice, QByteArray
+from PySide6.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
 from random import *
 import sys
 
-db = QSqlDatabase.addDatabase('QMYSQL')
-db.setHostName('192.168.68.22')
-db.setDatabaseName('cida')
-db.setUserName('cida')
-db.setPassword('cida')
-
+# db = QSqlDatabase.addDatabase('QMYSQL')
+# db.setHostName('192.168.68.22')
+# db.setDatabaseName('cida')
+# db.setUserName('cida')
+# db.setPassword('cida')
 
 # db = QSqlDatabase.addDatabase('QSQLITE')
 # db.setDatabaseName('scorer.db3')
 # Ha a progiból indul, nem kell majd
-if not db.open():
-    QMessageBox.critical(
-        None,
-        "App Name - Error!",
-        "Database Error: %s" % db.lastError().text(),
-    )
-    sys.exit(1)
-
+# if not db.open():
+#     QMessageBox.critical(
+#         None,
+#         "App Name - Error!",
+#         "Database Error: %s" % db.lastError().text(),
+#     )
+#     sys.exit(1)
 
 class CsoportTabla(QDialog):
     def __init__(self, parent=None):

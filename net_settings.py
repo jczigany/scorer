@@ -1,6 +1,6 @@
-from PySide2.QtWidgets import QSpacerItem, QSizePolicy, QMessageBox, QGridLayout, QDialog, QDialogButtonBox, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QApplication, QRadioButton, QSpinBox, QCompleter
-from PySide2.QtCore import *
-from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
+from PySide6.QtWidgets import QSpacerItem, QSizePolicy, QMessageBox, QGridLayout, QDialog, QDialogButtonBox, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QApplication, QRadioButton, QSpinBox, QCompleter
+from PySide6.QtCore import *
+from PySide6.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
 import socket, configparser, os, secrets
 
 db = QSqlDatabase.addDatabase('QSQLITE')

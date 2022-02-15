@@ -5,9 +5,9 @@ Alaphelyzetben offline módban is tud működni sqlite db-vel
 Képes MySql-t használni, így központilag vannak a játékosok, eredmények rögzítve
 Full kliens, így a versenyszervezésben mint végpont szerepel
 """
-from PySide2.QtWidgets import QMainWindow, QWidget, QApplication, QVBoxLayout, QMessageBox
-from PySide2.QtCore import *
-from PySide2.QtGui import QImage, QPainter
+from PySide6.QtWidgets import QMainWindow, QWidget, QApplication, QVBoxLayout, QMessageBox
+from PySide6.QtCore import *
+from PySide6.QtGui import QImage, QPainter
 # import os, sys
 from menus import create_menus
 from gamesettings2 import GameSettingsDialog
@@ -15,7 +15,7 @@ from gameon import GameWindowDialog
 from net_settings import NetworkSettingsDialog
 from match_stat import MatchStatWindow
 from select_match import SelectMatchWindow
-from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
+from PySide6.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
 # from database import create_tables
 
 # db = QSqlDatabase.addDatabase('QMYSQL')
@@ -147,4 +147,4 @@ if __name__ == '__main__':
     app = QApplication([])
     win = AppWindows()
     win.show()
-    app.exec_()
+    app.exec()

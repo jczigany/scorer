@@ -1,8 +1,8 @@
-from PySide2.QtWidgets import QMainWindow, QGraphicsOpacityEffect, QSpacerItem, QWidget, QMessageBox, QDialog, QLabel, QLineEdit, \
+from PySide6.QtWidgets import QMainWindow, QGraphicsOpacityEffect, QSpacerItem, QWidget, QMessageBox, QDialog, QLabel, QLineEdit, \
     QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QApplication, QSizePolicy, QTextEdit, QInputDialog
-from PySide2.QtCore import *
-from PySide2.QtGui import QRegExpValidator, QIntValidator, QFont, QTextCursor, QPainter, QPixmap, QPalette, QBrush, QImage
-from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
+from PySide6.QtCore import *
+from PySide6.QtGui import QIntValidator, QFont, QTextCursor, QPainter, QPixmap, QPalette, QBrush, QImage
+from PySide6.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
 
 
 # db = QSqlDatabase.addDatabase('QMYSQL')

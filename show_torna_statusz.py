@@ -1,23 +1,23 @@
-from PySide2.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, QGridLayout, QScrollArea, QListWidget, \
+from PySide6.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, QGridLayout, QScrollArea, QListWidget, \
     QListWidgetItem, QPushButton, QDialog, QLabel, QMessageBox, QComboBox, QSpacerItem, QSizePolicy, QMenu
-from PySide2.QtGui import QPainter, QPen, QBrush, QColor, QPixmap, QDrag, QFont
-from PySide2.QtCore import Qt, QMimeData, QDataStream, QIODevice, QByteArray
-from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
+from PySide6.QtGui import QPainter, QPen, QBrush, QColor, QPixmap, QDrag, QFont
+from PySide6.QtCore import Qt, QMimeData, QDataStream, QIODevice, QByteArray
+from PySide6.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
 import sys
 from datetime import datetime
-db = QSqlDatabase.addDatabase('QMYSQL')
-db.setHostName('192.168.68.22')
-db.setDatabaseName('cida')
-db.setUserName('cida')
-db.setPassword('cida')
-
-if not db.open():
-    QMessageBox.critical(
-        None,
-        "App Name - Error!",
-        "Database Error: %s" % db.lastError().text(),
-    )
-    sys.exit(1)
+# db = QSqlDatabase.addDatabase('QMYSQL')
+# db.setHostName('192.168.68.22')
+# db.setDatabaseName('cida')
+# db.setUserName('cida')
+# db.setPassword('cida')
+#
+# if not db.open():
+#     QMessageBox.critical(
+#         None,
+#         "App Name - Error!",
+#         "Database Error: %s" % db.lastError().text(),
+#     )
+#     sys.exit(1)
 
 # csoport_tabla = [6, 5, 5, 6] # todo ez sem a settings-ben, sem a torna_tablakban nincs rögzítve(a torna_match tartalmazza, ott viszont a csoport száma nincs
 

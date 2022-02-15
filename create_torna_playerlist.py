@@ -1,7 +1,7 @@
-from PySide2.QtWidgets import QListWidget, QListWidgetItem, QDialogButtonBox, QMessageBox, QDialog, \
+from PySide6.QtWidgets import QListWidget, QListWidgetItem, QDialogButtonBox, QMessageBox, QDialog, \
     QApplication, QComboBox, QVBoxLayout, QHBoxLayout, QPushButton, QInputDialog
-from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlRelationalTableModel, QSqlRelation
-from PySide2.QtCore import *
+from PySide6.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlRelationalTableModel, QSqlRelation
+from PySide6.QtCore import *
 import configparser, os, sys
 
 # db = QSqlDatabase.addDatabase('QMYSQL')

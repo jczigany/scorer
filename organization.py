@@ -1,13 +1,13 @@
-from PySide2.QtWidgets import QMainWindow, QWidget, QApplication, QVBoxLayout, QPushButton, QLabel, QMessageBox
-from PySide2.QtCore import *
-from PySide2.QtGui import QImage, QPainter
+from PySide6.QtWidgets import QMainWindow, QWidget, QApplication, QVBoxLayout, QPushButton, QLabel, QMessageBox
+from PySide6.QtCore import *
+from PySide6.QtGui import QImage, QPainter
 import os, sys
 from menus import create_menus_org
 from torna_settings import TornaSettingsDialog
 from show_torna_statusz import TornaStatuszWindow
 from create_boards import CsoportTabla
 from create_torna_playerlist import SelectPlayersWindow
-from PySide2.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
+from PySide6.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery, QSqlQueryModel
 from database import create_tables
 
 # db1 = QSqlDatabase.addDatabase('QMYSQL')

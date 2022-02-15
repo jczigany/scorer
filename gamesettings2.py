@@ -4,10 +4,10 @@ A játékosok neve db-ből (auto completer), ha újat írunk be, azt letárolja
 A beállított paramétereket átadja a játéablaknak inicializálásra és bezárja magát.
 Ha megszakítjuk, akkor a játékablak is bezáródik
 """
-from PySide2.QtWidgets import QMessageBox, QDialog, QDialogButtonBox, QLabel, QLineEdit, QCheckBox, \
+from PySide6.QtWidgets import QMessageBox, QDialog, QDialogButtonBox, QLabel, QLineEdit, QCheckBox, \
     QVBoxLayout, QHBoxLayout, QApplication, QRadioButton, QSpinBox, QCompleter
-from PySide2.QtCore import *
-from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
+from PySide6.QtCore import *
+from PySide6.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlTableModel
 import random, sys
 
 

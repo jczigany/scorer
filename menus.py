@@ -1,4 +1,4 @@
-from PySide2.QtWidgets import QAction
+from PySide6.QtGui import QAction
 
 def create_menus(self):
     # Menu

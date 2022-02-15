@@ -1,7 +1,7 @@
-from PySide2.QtWidgets import QListWidget, QListWidgetItem, QLabel, QDialog, QApplication, QScrollArea, QVBoxLayout, QGridLayout, QWidget
-from PySide2.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlRelationalTableModel
-from PySide2.QtGui import QPainter, QPen, QBrush, QColor, QFont
-from PySide2.QtCore import *
+from PySide6.QtWidgets import QListWidget, QListWidgetItem, QLabel, QDialog, QApplication, QScrollArea, QVBoxLayout, QGridLayout, QWidget
+from PySide6.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel, QSqlRelationalTableModel
+from PySide6.QtGui import QPainter, QPen, QBrush, QColor, QFont
+from PySide6.QtCore import *
 import sys
 
 # db = QSqlDatabase.addDatabase('QSQLITE')
