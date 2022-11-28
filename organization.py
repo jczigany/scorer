@@ -44,7 +44,7 @@ class OrgAppWindows(QMainWindow):
         self.setWindowTitle("Tournament Organization powered by Jcigi")
         self.resize(1000,1000)
         self.db = QSqlDatabase.addDatabase('QMYSQL')
-        self.db.setHostName('192.168.68.6')
+        self.db.setHostName('37.46.67.53')
         self.db.setDatabaseName('cida')
         self.db.setUserName('cida')
         self.db.setPassword('cida')
